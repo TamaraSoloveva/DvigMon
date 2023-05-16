@@ -10,12 +10,20 @@ SerialPort::SerialPort (QString name, qint32 spd, QSerialPort::StopBits sb,
     serial->setDataBits(db);
     serial->setStopBits(sb);
     serial->setFlowControl(QSerialPort::NoFlowControl);
-    if (serial->open(QIODevice::ReadWrite))
-        qDebug()<< "opened";
-    else
-        qDebug()<< "open it failed";
+    try {
+        serial->open(QIODevice::ReadWrite);
+    }
+   // catch (QSerialPort::SerialPortError &err) {
+    catch (std::exception &e) {
+        emit signal_outMsgWithDataCom("cxc");
+    /*    if (err == QSerialPort::OpenError) emit signal_outMsgWithDataCom("Com-port is already opened");
+        else if (err == QSerialPort::PermissionError) emit signal_outMsgWithDataCom("Not having enough permission to open com-port");
+        else if (err == QSerialPort::DeviceNotFoundError) emit signal_outMsgWithDataCom("No com-port with this name");
+        else if ( err != QSerialPort::NoError) emit signal_outMsgWithDataCom("Unable to open com-port");*/
+    }
 
-    connect(serial, &QSerialPort::readyRead, this, &SerialPort::readRawData );
+
+  //  connect(serial, &QSerialPort::readyRead, this, &SerialPort::readRawData );
 
 }
 

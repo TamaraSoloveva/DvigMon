@@ -60,7 +60,7 @@ private:
     size_t secNum, currSec;
 
     QMutex mutex;
-    QFile fl;
+    QFile fl, fl_tmp;
 
     int val=0;
     int tmp=0;

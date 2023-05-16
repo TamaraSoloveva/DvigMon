@@ -30,6 +30,7 @@ signals:
     void receive_data(QByteArray tmp);
     void signalSaveByteArray(QByteArray tmp);
     void sig(QByteArray aaa);
+    void signal_outMsgWithDataCom(const QString &str);
 
 
 };

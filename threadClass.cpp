@@ -1,8 +1,13 @@
 #include "threadClass.h"
 #include <QDebug>
+#include <sstream>
+
 
 void threadClass::run()  {
-    qDebug()<<"Started\n";
+    qDebug()<<"Started thread\n";
+
+    std::ostringstream ss;
+     std::string s;
 
     while(started) {
         if (!dataVec.isEmpty()) {
@@ -27,6 +32,12 @@ void threadClass::run()  {
                     tmp <<= 8;
                     val += tmp;
                     params.push_back(val);
+                    ss << std::hex << val;
+                    s = ss.str() + " ";
+                    fl_tmp.write(s.c_str());
+                    s.clear();
+                    ss.str("");
+                    ss.clear();
                     val = 0;
                     break;
                 case 11:

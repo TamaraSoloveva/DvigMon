@@ -16,7 +16,7 @@
 
 Widget::Widget(QWidget *parent)
     : QWidget(parent)
-    , ui(new Ui::Widget), rdSet_num(0), timer(nullptr), secNum(0), currSec(0)
+    , ui(new Ui::Widget), serPort(nullptr), thC(nullptr), rdSet_num(0), timer(nullptr), secNum(0), currSec(0)
 {
     ui->setupUi(this);
     updateComInfo();
@@ -39,7 +39,6 @@ Widget::Widget(QWidget *parent)
     connect(this, &Widget::signal_stopConnection, this, &Widget::slot_stopConnection);
     connect(this, &Widget::signal_outMsgWithData, this, &Widget::slot_outMsgWithData);
 
-
    val=tmp=cntr=numInArr=0;
 
     iDataV.clear();
@@ -47,7 +46,7 @@ Widget::Widget(QWidget *parent)
 
 
     // Создаём представление графиков
-  /*  QChartView *chartViewI0 = new QChartView(this);
+ /*   QChartView *chartViewI0 = new QChartView(this);
 
 
     ui->horizontalLayout_2->addWidget(chartViewI0);
@@ -160,9 +159,18 @@ void Widget::slot_stopConnection() {
     ui->pushButton_2->setText("Connect");
     ui->comboBox->setEnabled(true);
     ui->pushButton->setEnabled(false);
-    if (serPort) delete serPort;
-    if (timer) stopTest(true);
-    if (thC->isRunning()) emit signalStopThread();
+    if (serPort) {
+        delete serPort;
+        serPort=nullptr;
+    }
+    if (timer) {
+        stopTest(true);
+        timer = nullptr;
+    }
+    if (thC && thC->isRunning()) {
+        emit signalStopThread();
+        thC = nullptr;
+    }
     if (fl.isOpen()) {
         fl.flush();
         fl.close();
@@ -181,8 +189,15 @@ void Widget::slot_setConnection() {
     ui->pushButton->setEnabled(true);
     ui->comboBox->setEnabled(false);
 
-    serPort = new SerialPort(ui->comboBox->currentText(), 115200, QSerialPort::OneStop,
-                           QSerialPort::Data8,  QSerialPort::NoParity );
+    try {
+        serPort = new SerialPort(ui->comboBox->currentText(), 115200, QSerialPort::OneStop,
+                           QSerialPort::Data8,  QSerialPort::NoParity );    
+    }
+    catch(std::bad_alloc &exc) {
+        emit signal_outMsgWithData("Error - Allocation memory!!!");
+    }
+
+    connect(serPort, &SerialPort::signal_outMsgWithDataCom, this, &Widget::slot_outMsgWithData);
     connect(serPort, &SerialPort::signalSaveByteArray, this, &Widget::slotSaveByteArray);
     connect(this, &Widget::signal_wrData, serPort, &SerialPort::slot_writeData);
     connect(serPort, &SerialPort::sig, this, &Widget::slot_2);
@@ -221,10 +236,12 @@ void Widget::startTest() {
         emit signal_outMsgWithData("Unable to open log file ");
     }
 
+
+/*
     static const char mydata[] = {
        0x33, '@', 0x00, 0x0C, 0x21, 0x11, 0x02, 0x75, 0x34, 0x43, 0x0, 0xd, '!', '@', 0x22 };
     QByteArray aaa = QByteArray::fromRawData(mydata, 15);
-    slotSaveByteArray(aaa);
+    slotSaveByteArray(aaa);*/
 }
 
 
@@ -271,7 +288,6 @@ void Widget::slotSaveByteArray( const QByteArray &arr) {
     QMutexLocker locker(&mutex);
     vecRawData.push_back(arr);
     fl.write(arr);
-    fl.flush();
 }
 
 void Widget::sortAlphabetically() {
