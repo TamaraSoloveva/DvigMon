@@ -1,5 +1,7 @@
 #include "comPort.h"
 #include <QDebug>
+#include <QMessageBox>
+#include <QErrorMessage>
 
 SerialPort::SerialPort (QString name, qint32 spd, QSerialPort::StopBits sb,
                          QSerialPort::DataBits db, QSerialPort::Parity pp) {
@@ -10,20 +12,12 @@ SerialPort::SerialPort (QString name, qint32 spd, QSerialPort::StopBits sb,
     serial->setDataBits(db);
     serial->setStopBits(sb);
     serial->setFlowControl(QSerialPort::NoFlowControl);
-    try {
-        serial->open(QIODevice::ReadWrite);
-    }
-   // catch (QSerialPort::SerialPortError &err) {
-    catch (std::exception &e) {
-        emit signal_outMsgWithDataCom("cxc");
-    /*    if (err == QSerialPort::OpenError) emit signal_outMsgWithDataCom("Com-port is already opened");
-        else if (err == QSerialPort::PermissionError) emit signal_outMsgWithDataCom("Not having enough permission to open com-port");
-        else if (err == QSerialPort::DeviceNotFoundError) emit signal_outMsgWithDataCom("No com-port with this name");
-        else if ( err != QSerialPort::NoError) emit signal_outMsgWithDataCom("Unable to open com-port");*/
+
+    if (!serial->open(QIODevice::ReadWrite)) {
+        QMessageBox::critical(nullptr, tr("Error"), serial->errorString());
     }
 
-
-  //  connect(serial, &QSerialPort::readyRead, this, &SerialPort::readRawData );
+    connect(serial, &QSerialPort::readyRead, this, &SerialPort::readRawData );
 
 }
 

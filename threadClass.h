@@ -29,7 +29,7 @@ private:
     QFile fl_tmp;
 
 public slots:
-    void stopAllThreads() { started = false;}
+    void stopAllThreads() { started = false; if (fl_tmp.isOpen()) { fl_tmp.flush(); fl_tmp.close(); }}
     void getDataForParse( QVector<char> inputVec) {
         dataVec = inputVec;
     }

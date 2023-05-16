@@ -237,8 +237,8 @@ void Widget::startTest() {
     }
 
 
-/*
-    static const char mydata[] = {
+
+/*    static const char mydata[] = {
        0x33, '@', 0x00, 0x0C, 0x21, 0x11, 0x02, 0x75, 0x34, 0x43, 0x0, 0xd, '!', '@', 0x22 };
     QByteArray aaa = QByteArray::fromRawData(mydata, 15);
     slotSaveByteArray(aaa);*/
