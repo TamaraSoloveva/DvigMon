@@ -221,11 +221,11 @@ void Widget::startTest() {
     timer->start();
     connect(timer, &QTimer::timeout, this, &Widget::updateTime);
 
-    thC = new threadClass(this);
+   /* thC = new threadClass(this);
 
     connect(this, &Widget::signalForThread, thC, &threadClass::getDataForParse);
     connect(this, &Widget::signalStopThread, thC, &threadClass::stopAllThreads);
-    thC->start();
+    thC->start();*/
 
     QString aa = QDir::currentPath()+"\\DATA.txt";
     fl.setFileName(aa);
@@ -249,12 +249,16 @@ void Widget::stopTest(bool byBtn) {
      timer->stop();
      delete timer;
      timer = nullptr;
-     ui->pushButton->setText("Start test");
+
      emit signalStopThread();
-     if (byBtn)
+     if (byBtn) {
         emit signal_outMsgWithData(QString("Test interrupted. Work time: %1 seconds").arg(currSec));
-     else
-        emit signal_outMsgWithData("Test finished.");
+         ui->pushButton->setText("Start test");
+     }
+     else {
+        emit signal_outMsgWithData("Write file finished.");
+         ui->pushButton->setText("Get result");
+     }
      if (fl.isOpen()) {
          fl.flush();
          fl.close();
