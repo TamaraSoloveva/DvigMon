@@ -12,6 +12,12 @@
 #include <QFile>
 #include <QMessageBox>
 
+QT_BEGIN_NAMESPACE
+#include <QChart>
+#include <QChartView>
+#include <QLineSeries>
+QT_END_NAMESPACE
+
 #include "CONST_VAL.h"
 #include "comPort.h"
 #include "threadClass.h"
@@ -38,6 +44,8 @@ typedef union snd_pckg_t {
     unsigned char msgMas[sizeof(wrStruct)];
     wrStruct wrs;
 }wrCmdMsg;
+
+QT_CHARTS_USE_NAMESPACE
 
 class Widget : public QWidget
 {
@@ -74,6 +82,10 @@ private:
     QVector<QByteArray> qDataV;
     QVector<double> params;
     QVector<QVector<double>>points;
+
+    QChartView *chartViewI0;
+    QChart *chartI0;
+    QLineSeries *seriesI0;
 
 
     int iCnt;

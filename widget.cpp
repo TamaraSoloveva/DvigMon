@@ -4,16 +4,12 @@
 #include <QtSerialPort/QSerialPort>
 #include <QtSerialPort/QSerialPortInfo>
 #include <QMenuBar>
-#include <QChart>
-#include <QChartView>
-#include <QtCharts/QChartView>
-#include <QtCharts/QLineSeries>
 #include <QDir>
 #include <QFileDialog>
 
 #define PACK_SIZE 10
 
-QT_CHARTS_USE_NAMESPACE
+
 
 Widget::Widget(QWidget *parent)
     : QWidget(parent)
@@ -45,9 +41,9 @@ Widget::Widget(QWidget *parent)
     iDataV.clear();
 
     // Создаём представление графиков
-    QChartView *chartViewI0 = new QChartView(this);
+    chartViewI0 = new QChartView(this);
     ui->horizontalLayout_2->addWidget(chartViewI0);
-    QChart *chartI0 = new QChart();
+    chartI0 = new QChart();
     chartI0->legend()->hide();
     chartI0->createDefaultAxes();
     chartI0->setTitle("I0");
@@ -164,14 +160,21 @@ void Widget::parseResult() {
             delete[]hex;
         }
         //построение графиков
-        QLineSeries *seriesI0 = new QLineSeries();
-      /*  series->append(0, 6);
-        series->append(2, 4);
-        series->append(3, 8);
-        series->append(7, 4);
-        series->append(10, 5);
-        *series << QPointF(11, 1) << QPointF(13, 3) << QPointF(17, 6) << QPointF(18, 3) <<   QPointF(20, 2);
-*/
+        double min=0, max=0;
+
+        seriesI0 = new QLineSeries();
+        min = points.at(0).at(0);
+        max = points.at(0).at(0);
+        for (int i=0; i<points.size(); ++i){
+            seriesI0->append(i, points.at(i).at(0));
+            if ( points.at(i).at(0) < min) min = points.at(i).at(0);
+            if ( points.at(i).at(0) > max) max = points.at(i).at(0);
+        }
+        chartI0->addSeries(seriesI0);
+        chartI0->createDefaultAxes();
+        chartI0->axes(Qt::Horizontal).first()->setRange(0, points.size() );
+        chartI0->axes(Qt::Vertical).first()->setRange((int)(min-1000), (int)(max+1000));;
+
     }
 }
 
