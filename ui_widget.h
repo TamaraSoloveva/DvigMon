@@ -1,13 +1,13 @@
 /********************************************************************************
-** Form generated from reading UI file 'widgetouRTuZ.ui'
+** Form generated from reading UI file 'widgetpQONin.ui'
 **
 ** Created by: Qt User Interface Compiler version 5.15.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
 
-#ifndef WIDGETOURTUZ_H
-#define WIDGETOURTUZ_H
+#ifndef WIDGETPQONIN_H
+#define WIDGETPQONIN_H
 
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
@@ -28,7 +28,7 @@ QT_BEGIN_NAMESPACE
 class Ui_Widget
 {
 public:
-    QGridLayout *gridLayout_2;
+    QGridLayout *gridLayout;
     QTabWidget *tabWidget;
     QWidget *tab;
     QHBoxLayout *horizontalLayout;
@@ -48,7 +48,6 @@ public:
     QPushButton *pushButton_3;
     QSpacerItem *verticalSpacer;
     QWidget *tab_4;
-    QGridLayout *gridLayout;
     QWidget *tab_5;
     QWidget *tab_3;
     QWidget *tab_2;
@@ -57,9 +56,9 @@ public:
     {
         if (Widget->objectName().isEmpty())
             Widget->setObjectName(QString::fromUtf8("Widget"));
-        Widget->resize(670, 612);
-        gridLayout_2 = new QGridLayout(Widget);
-        gridLayout_2->setObjectName(QString::fromUtf8("gridLayout_2"));
+        Widget->resize(576, 565);
+        gridLayout = new QGridLayout(Widget);
+        gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
         tabWidget = new QTabWidget(Widget);
         tabWidget->setObjectName(QString::fromUtf8("tabWidget"));
         tab = new QWidget();
@@ -163,8 +162,6 @@ public:
         tabWidget->addTab(tab, QString());
         tab_4 = new QWidget();
         tab_4->setObjectName(QString::fromUtf8("tab_4"));
-        gridLayout = new QGridLayout(tab_4);
-        gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
         tabWidget->addTab(tab_4, QString());
         tab_5 = new QWidget();
         tab_5->setObjectName(QString::fromUtf8("tab_5"));
@@ -176,7 +173,7 @@ public:
         tab_2->setObjectName(QString::fromUtf8("tab_2"));
         tabWidget->addTab(tab_2, QString());
 
-        gridLayout_2->addWidget(tabWidget, 0, 0, 1, 1);
+        gridLayout->addWidget(tabWidget, 0, 0, 1, 1);
 
 
         retranslateUi(Widget);
@@ -210,4 +207,4 @@ namespace Ui {
 
 QT_END_NAMESPACE
 
-#endif // WIDGETOURTUZ_H
+#endif // WIDGETPQONIN_H

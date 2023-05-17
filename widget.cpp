@@ -38,17 +38,21 @@ Widget::Widget(QWidget *parent)
     iDataV.clear();
 
     // Создаём представление графиков
- //   chartViewI0 = new QChartView(this);
-  //  ui->horizontalLayout_2->addWidget(chartViewI0);
-  /*  chartI0 = new QChart();
+    chartViewI0 = new QChartView(this);
+    QVBoxLayout *vbox0 = new QVBoxLayout;
+    vbox0->addWidget(chartViewI0);
+    ui->tab_4->setLayout(vbox0);
+    chartI0 = new QChart();
     chartI0->legend()->hide();
     chartI0->createDefaultAxes();
     chartI0->setTitle("I0");
-    chartViewI0->setChart(chartI0);*/
+    chartViewI0->setChart(chartI0);
 
-/*
+
     QChartView *chartViewI1 = new QChartView(this);
-    ui->horizontalLayout_2->addWidget(chartViewI1);
+    QVBoxLayout *vbox1 = new QVBoxLayout;
+    vbox1->addWidget(chartViewI1);
+    ui->tab_5->setLayout(vbox1);
     QChart *chartI1 = new QChart();
     chartI1->legend()->hide();
     chartI1->createDefaultAxes();
@@ -56,7 +60,9 @@ Widget::Widget(QWidget *parent)
     chartViewI1->setChart(chartI1);
 
     QChartView *chartViewI2 = new QChartView(this);
-    ui->horizontalLayout_3->addWidget(chartViewI2);
+    QVBoxLayout *vbox2 = new QVBoxLayout;
+    vbox2->addWidget(chartViewI2);
+    ui->tab_3->setLayout(vbox2);
     QChart *chartI2 = new QChart();
     chartI2->legend()->hide();
     chartI2->createDefaultAxes();
@@ -64,12 +70,14 @@ Widget::Widget(QWidget *parent)
     chartViewI2->setChart(chartI2);
 
     QChartView *chartViewU = new QChartView(this);
-    ui->horizontalLayout_3->addWidget(chartViewU);
+    QVBoxLayout *vbox3 = new QVBoxLayout;
+    vbox3->addWidget(chartViewU);
+    ui->tab_2->setLayout(vbox3);
     QChart *chartU = new QChart();
     chartU->legend()->hide();
     chartU->createDefaultAxes();
     chartU->setTitle("U");
-    chartViewU->setChart(chartU);*/
+    chartViewU->setChart(chartU);
 
 
 }
@@ -107,11 +115,8 @@ void Widget::slot_ParseResult() {
         double dwVal = 0;
         QByteArray line;
 
-        int str_n = 0;
-
         while (! fl.atEnd()) {
             line = fl.readLine();
-            str_n++;
             const size_t count = line.size();
             unsigned char* hex =new unsigned char[count];
             memcpy(hex, line.constData(), count);
@@ -156,10 +161,9 @@ void Widget::slot_ParseResult() {
             }
             delete[]hex;
         }
+
         //построение графиков
         double min=0, max=0;
-
-
 
         seriesI0 = new QLineSeries();
 
