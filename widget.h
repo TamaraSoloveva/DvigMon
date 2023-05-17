@@ -87,6 +87,17 @@ private:
     QChart *chartI0;
     QLineSeries *seriesI0;
 
+    QChartView *chartViewI1;
+    QChart *chartI1;
+    QLineSeries *seriesI1;
+
+    QChartView *chartViewI2;
+    QChart *chartI2;
+    QLineSeries *seriesI2;
+
+    QChartView *chartViewU;
+    QChart *chartU;
+    QLineSeries *seriesU;
 
     int iCnt;
 
@@ -96,7 +107,6 @@ private:
     void startTest();
     void stopTest( bool byBtn );
     double countValues( const uint16_t & v );
-    //void parseData( QVector<char> & vect );
 
 private slots:    
     void slot_connectToCom();

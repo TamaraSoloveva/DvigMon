@@ -49,31 +49,31 @@ Widget::Widget(QWidget *parent)
     chartViewI0->setChart(chartI0);
 
 
-    QChartView *chartViewI1 = new QChartView(this);
+    chartViewI1 = new QChartView(this);
     QVBoxLayout *vbox1 = new QVBoxLayout;
     vbox1->addWidget(chartViewI1);
     ui->tab_5->setLayout(vbox1);
-    QChart *chartI1 = new QChart();
+    chartI1 = new QChart();
     chartI1->legend()->hide();
     chartI1->createDefaultAxes();
     chartI1->setTitle("I1");
     chartViewI1->setChart(chartI1);
 
-    QChartView *chartViewI2 = new QChartView(this);
+    chartViewI2 = new QChartView(this);
     QVBoxLayout *vbox2 = new QVBoxLayout;
     vbox2->addWidget(chartViewI2);
     ui->tab_3->setLayout(vbox2);
-    QChart *chartI2 = new QChart();
+    chartI2 = new QChart();
     chartI2->legend()->hide();
     chartI2->createDefaultAxes();
     chartI2->setTitle("I2");
     chartViewI2->setChart(chartI2);
 
-    QChartView *chartViewU = new QChartView(this);
+    chartViewU = new QChartView(this);
     QVBoxLayout *vbox3 = new QVBoxLayout;
     vbox3->addWidget(chartViewU);
     ui->tab_2->setLayout(vbox3);
-    QChart *chartU = new QChart();
+    chartU = new QChart();
     chartU->legend()->hide();
     chartU->createDefaultAxes();
     chartU->setTitle("U");
@@ -166,7 +166,6 @@ void Widget::slot_ParseResult() {
         double min=0, max=0;
 
         seriesI0 = new QLineSeries();
-
         min = points.at(0).at(0);
         max = points.at(0).at(0);
         for (int i=0; i<points.size(); ++i){
@@ -177,7 +176,50 @@ void Widget::slot_ParseResult() {
         chartI0->addSeries(seriesI0);
         chartI0->createDefaultAxes();
         chartI0->axes(Qt::Horizontal).first()->setRange(0, points.size() );
-        chartI0->axes(Qt::Vertical).first()->setRange((int)(min-1000), (int)(max+1000));;
+        chartI0->axes(Qt::Vertical).first()->setRange((int)min, (int)max);
+
+
+         seriesI1 = new QLineSeries();
+         min = points.at(0).at(1);
+         max = points.at(0).at(1);
+         for (int i=0; i<points.size(); ++i){
+             seriesI1->append(i, points.at(i).at(1));
+             if ( points.at(i).at(1) < min) min = points.at(i).at(1);
+             if ( points.at(i).at(1) > max) max = points.at(i).at(1);
+         }
+         chartI1->addSeries(seriesI1);
+         chartI1->createDefaultAxes();
+         chartI1->axes(Qt::Horizontal).first()->setRange(0, points.size() );
+         chartI1->axes(Qt::Vertical).first()->setRange((int)min, (int)max);
+
+    /*     seriesI2 = new QLineSeries();
+         min = points.at(0).at(2);
+         max = points.at(0).at(2);
+         for (int i=0; i<points.size(); ++i){
+             seriesI2->append(i, points.at(i).at(2));
+             if ( points.at(i).at(2) < min) min = points.at(i).at(2);
+             if ( points.at(i).at(2) > max) max = points.at(i).at(2);
+         }
+         chartI2->addSeries(seriesI2);
+         chartI2->createDefaultAxes();
+         chartI2->axes(Qt::Horizontal).first()->setRange(0, points.size() );
+         chartI2->axes(Qt::Vertical).first()->setRange((int)min, (int)max);
+
+         seriesU = new QLineSeries();
+         min = points.at(0).at(3);
+         max = points.at(0).at(3);
+         for (int i=0; i<points.size(); ++i){
+             seriesU->append(i, points.at(i).at(3));
+             if ( points.at(i).at(3) < min) min = points.at(i).at(3);
+             if ( points.at(i).at(3) > max) max = points.at(i).at(3);
+         }
+         chartU->addSeries(seriesU);
+         chartU->createDefaultAxes();
+         chartU->axes(Qt::Horizontal).first()->setRange(0, points.size() );
+         chartU->axes(Qt::Vertical).first()->setRange((int)min, (int)max);
+*/
+
+        emit signal_outMsgWithData("Charts from file "+filename+" ready");
 
     }
 }
@@ -208,6 +250,24 @@ void Widget::slot_cleanScreen() {
 
 Widget::~Widget()
 {
+    delete seriesI0;
+    delete chartI0;
+    delete chartViewI0;
+
+    delete seriesI1;
+    delete chartI1;
+    delete chartViewI1;
+
+    delete seriesI2;
+    delete chartI2;
+    delete chartViewI2;
+
+
+    delete seriesU;
+    delete chartU;
+    delete chartViewU;
+
+
     slot_stopConnection();
     delete ui;
 }
