@@ -72,8 +72,11 @@ private:
     QVector <QByteArray> vecRawData;
     QVector<char> iDataV;
     QVector<QByteArray> qDataV;
-    QVector<int> params;
-    QVector<QVector<int>>points;
+    QVector<double> params;
+    QVector<QVector<double>>points;
+
+
+    int iCnt;
 
     void updateComInfo();
     void sortAlphabetically();
@@ -81,7 +84,7 @@ private:
     void startTest();
     void stopTest( bool byBtn );
     void parseResult();
-    uint32_t countValues( const uint16_t & v );
+    double countValues( const uint16_t & v );
     //void parseData( QVector<char> & vect );
 
 private slots:    

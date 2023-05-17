@@ -17,7 +17,7 @@ QT_CHARTS_USE_NAMESPACE
 
 Widget::Widget(QWidget *parent)
     : QWidget(parent)
-    , ui(new Ui::Widget), serPort(nullptr), thC(nullptr), rdSet_num(0), timer(nullptr), secNum(0), currSec(0)
+    , ui(new Ui::Widget), serPort(nullptr), thC(nullptr), rdSet_num(0), timer(nullptr), secNum(0), currSec(0), iCnt(0)
 {
     ui->setupUi(this);
     updateComInfo();
@@ -40,61 +40,45 @@ Widget::Widget(QWidget *parent)
     connect(this, &Widget::signal_stopConnection, this, &Widget::slot_stopConnection);
     connect(this, &Widget::signal_outMsgWithData, this, &Widget::slot_outMsgWithData);
 
-   val=tmp=cntr=numInArr=0;
+    val=tmp=cntr=numInArr=0;
 
     iDataV.clear();
 
-
-
     // Создаём представление графиков
     QChartView *chartViewI0 = new QChartView(this);
-
-
     ui->horizontalLayout_2->addWidget(chartViewI0);
-
-         QLineSeries *series = new QLineSeries();
-            series->append(0, 6);
-            series->append(2, 4);
-            series->append(3, 8);
-            series->append(7, 4);
-            series->append(10, 5);
-            *series << QPointF(11, 1) << QPointF(13, 3) << QPointF(17, 6) << QPointF(18, 3) <<   QPointF(20, 2);
-            QChart *chartI0 = new QChart();
-            chartI0->legend()->hide();
-            chartI0->addSeries(series);
-            chartI0->createDefaultAxes();
-            chartI0->setTitle("Curr I0");
-            chartViewI0->setChart(chartI0);
-
-            QChartView *chartViewI1 = new QChartView(this);
-            ui->horizontalLayout_2->addWidget(chartViewI1);
-
-            QChart *chartI1 = new QChart();
-            chartI1->legend()->hide();
-            chartI1->createDefaultAxes();
-            chartI1->setTitle("Curr I1");
-            chartViewI1->setChart(chartI1);
+    QChart *chartI0 = new QChart();
+    chartI0->legend()->hide();
+    chartI0->createDefaultAxes();
+    chartI0->setTitle("I0");
+    chartViewI0->setChart(chartI0);
 
 
-           QChartView *chartViewI2 = new QChartView(this);
-           ui->horizontalLayout_3->addWidget(chartViewI2);
+    QChartView *chartViewI1 = new QChartView(this);
+    ui->horizontalLayout_2->addWidget(chartViewI1);
+    QChart *chartI1 = new QChart();
+    chartI1->legend()->hide();
+    chartI1->createDefaultAxes();
+    chartI1->setTitle("I1");
+    chartViewI1->setChart(chartI1);
 
-           QChart *chartI2 = new QChart();
-           chartI2->legend()->hide();
-  //         chartI1->addSeries(series);
-         chartI2->createDefaultAxes();
-           chartI2->setTitle("Curr I2");
-          chartViewI2->setChart(chartI2);
+    QChartView *chartViewI2 = new QChartView(this);
+    ui->horizontalLayout_3->addWidget(chartViewI2);
+    QChart *chartI2 = new QChart();
+    chartI2->legend()->hide();
+    chartI2->createDefaultAxes();
+    chartI2->setTitle("I2");
+    chartViewI2->setChart(chartI2);
 
-          QChartView *chartViewU = new QChartView(this);
-          ui->horizontalLayout_3->addWidget(chartViewU);
+    QChartView *chartViewU = new QChartView(this);
+    ui->horizontalLayout_3->addWidget(chartViewU);
+    QChart *chartU = new QChart();
+    chartU->legend()->hide();
+    chartU->createDefaultAxes();
+    chartU->setTitle("U");
+    chartViewU->setChart(chartU);
 
-          QChart *chartU = new QChart();
-          chartU->legend()->hide();
- //         chartI1->addSeries(series);
-        chartU->createDefaultAxes();
-          chartU->setTitle("U");
-         chartViewU->setChart(chartU);
+
 }
 
 void Widget::slot_manageTest() {
@@ -110,8 +94,8 @@ void Widget::slot_manageTest() {
 }
 
 
-uint32_t Widget::countValues( const uint16_t & v ) {
-    return (v * 0x076 - 2500);
+double Widget::countValues( const uint16_t & v ) {
+    return ((double) v * 0.076 - 2500);
 }
 
 void Widget::parseResult() {
@@ -123,70 +107,72 @@ void Widget::parseResult() {
         }
 
 
-        char ch;
+        uint8_t ch=0;
         bool isMsg = false;
-        int iCnt=0;
-        char tmp;
-        uint16_t wVal;
-        uint32_t dwVal;
-        QString aaa;
+        uint8_t tmp = 0;
+        uint16_t wVal=0;
+        double dwVal = 0;
         QByteArray line;
-        unsigned char* buffer;
-        const unsigned char *data;
+
+        int str_n = 0;
+
         while (! fl.atEnd()) {
             line = fl.readLine();
-
-            data = reinterpret_cast<const unsigned char*>(line.data());
-
-
-
-
-  /*          if (ch == '@') {
-                isMsg = true;
-                iCnt++;
-                continue;
-            }
-            if ( isMsg ) {
-                switch(iCnt) {
-                case 1:
-                case 3:
-                case 5:
-                case 7:
-                case 9:
-                    tmp = ch;
-                    break;
-                case 2:
-                case 4:
-                case 6:
-                case 8:
-                case 10:
-                    wVal = ch;
-                    wVal <<= 8;
-                    wVal += tmp;
-                    dwVal = countValues(wVal);
-
-
-                    tmp = 0;
-                    break;
-                case 11:
-                    if (ch == '!') {
-                      /*  points.push_back(params);
-                        params.clear();*/
-               /*     }
-                    else {
-                      //  emit signal_outMsgWithData("Bad pack");
-
-                    }
-                    params.clear();
-                    cntr=0;
+            str_n++;
+            const size_t count = line.size();
+            unsigned char* hex =new unsigned char[count];
+            memcpy(hex, line.constData(), count);
+            for (size_t i=0; i<count; ++i) {
+                ch = hex[i];
+                if (ch == '@') {
+                    isMsg = true;
+                    iCnt=1;
                     continue;
                 }
+                if ( isMsg ) {
+                    switch(iCnt) {
+                    case 1:
+                    case 3:
+                    case 5:
+                    case 7:
+                    case 9:
+                        tmp = ch;
+                        break;
+                    case 2:
+                    case 4:
+                    case 6:
+                    case 8:
+                    case 10:
+                        wVal = ch;
+                        wVal <<= 8;
+                        wVal += (uint16_t)tmp;
+                        dwVal = countValues(wVal);
+                        params.push_back(dwVal);
+                        break;
+                    case 11:
+                        if (ch == '!') {
+                            points.push_back(params);
+                        }
+                        iCnt=0;
+                        params.clear();
+                        isMsg = false;
+                        continue;
+                    }
+                }
                 iCnt++;
-
-            }*/
+            }
+            delete[]hex;
         }
+        //построение графиков
+        QLineSeries *seriesI0 = new QLineSeries();
+      /*  series->append(0, 6);
+        series->append(2, 4);
+        series->append(3, 8);
+        series->append(7, 4);
+        series->append(10, 5);
+        *series << QPointF(11, 1) << QPointF(13, 3) << QPointF(17, 6) << QPointF(18, 3) <<   QPointF(20, 2);
+*/
     }
-
 }
 
 

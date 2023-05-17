@@ -22,7 +22,7 @@ private:
     int numInArr;
     int cntr;
     int val, tmp;
-    QVector<int>params;
+    QVector<int32_t>params;
     QVector<QVector<int>>points;
     bool started;
 
