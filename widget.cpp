@@ -4,15 +4,16 @@
 #include <QtSerialPort/QSerialPort>
 #include <QtSerialPort/QSerialPortInfo>
 #include <QMenuBar>
-/*#include <QChart>
+#include <QChart>
 #include <QChartView>
 #include <QtCharts/QChartView>
-#include <QtCharts/QLineSeries>*/
+#include <QtCharts/QLineSeries>
 #include <QDir>
+#include <QFileDialog>
 
 #define PACK_SIZE 10
 
-//QT_CHARTS_USE_NAMESPACE
+QT_CHARTS_USE_NAMESPACE
 
 Widget::Widget(QWidget *parent)
     : QWidget(parent)
@@ -46,7 +47,7 @@ Widget::Widget(QWidget *parent)
 
 
     // Создаём представление графиков
- /*   QChartView *chartViewI0 = new QChartView(this);
+    QChartView *chartViewI0 = new QChartView(this);
 
 
     ui->horizontalLayout_2->addWidget(chartViewI0);
@@ -93,16 +94,99 @@ Widget::Widget(QWidget *parent)
  //         chartI1->addSeries(series);
         chartU->createDefaultAxes();
           chartU->setTitle("U");
-         chartViewU->setChart(chartU);*/
+         chartViewU->setChart(chartU);
 }
 
 void Widget::slot_manageTest() {
     if ( ui->pushButton->text() == "Start test") {
         startTest();
     }
+    else if ( ui->pushButton->text() == "Get result") {
+        parseResult();
+    }
     else {
         stopTest(true);
     }
+}
+
+
+uint32_t Widget::countValues( const uint16_t & v ) {
+    return (v * 0x076 - 2500);
+}
+
+void Widget::parseResult() {
+    QString filename = QFileDialog::getOpenFileName(nullptr, QObject::tr("Open Document"), QDir::currentPath(), QObject::tr("Document files (*.txt);;All files (*.*)"));
+    if (!filename.isEmpty()) {
+        QFile fl(filename);
+        if (!fl.open(QIODevice::ReadOnly) ) {
+           QMessageBox::critical(nullptr, "Error", "Unable to open file", QMessageBox::Ok);
+        }
+
+
+        char ch;
+        bool isMsg = false;
+        int iCnt=0;
+        char tmp;
+        uint16_t wVal;
+        uint32_t dwVal;
+        QString aaa;
+        QByteArray line;
+        unsigned char* buffer;
+        const unsigned char *data;
+        while (! fl.atEnd()) {
+            line = fl.readLine();
+
+            data = reinterpret_cast<const unsigned char*>(line.data());
+
+
+
+
+  /*          if (ch == '@') {
+                isMsg = true;
+                iCnt++;
+                continue;
+            }
+            if ( isMsg ) {
+                switch(iCnt) {
+                case 1:
+                case 3:
+                case 5:
+                case 7:
+                case 9:
+                    tmp = ch;
+                    break;
+                case 2:
+                case 4:
+                case 6:
+                case 8:
+                case 10:
+                    wVal = ch;
+                    wVal <<= 8;
+                    wVal += tmp;
+                    dwVal = countValues(wVal);
+
+
+                    tmp = 0;
+                    break;
+                case 11:
+                    if (ch == '!') {
+                      /*  points.push_back(params);
+                        params.clear();*/
+               /*     }
+                    else {
+                      //  emit signal_outMsgWithData("Bad pack");
+
+                    }
+                    params.clear();
+                    cntr=0;
+                    continue;
+                }
+                iCnt++;
+
+            }*/
+        }
+    }
+
 }
 
 
@@ -205,7 +289,7 @@ void Widget::slot_setConnection() {
 }
 
 
-void Widget::startTest() {    
+void Widget::startTest() {
     if (ui->lineEdit->text().isEmpty()) {
         emit signal_outMsgWithData("Error - Input Time in seconds!!!");
         ui->pushButton_2->setChecked(true);
@@ -221,12 +305,6 @@ void Widget::startTest() {
     timer->start();
     connect(timer, &QTimer::timeout, this, &Widget::updateTime);
 
-   /* thC = new threadClass(this);
-
-    connect(this, &Widget::signalForThread, thC, &threadClass::getDataForParse);
-    connect(this, &Widget::signalStopThread, thC, &threadClass::stopAllThreads);
-    thC->start();*/
-
     QString aa = QDir::currentPath()+"\\DATA.txt";
     fl.setFileName(aa);
     if (fl.open(QIODevice::WriteOnly)) {
@@ -235,13 +313,6 @@ void Widget::startTest() {
     else {
         emit signal_outMsgWithData("Unable to open log file ");
     }
-
-
-
-/*    static const char mydata[] = {
-       0x33, '@', 0x00, 0x0C, 0x21, 0x11, 0x02, 0x75, 0x34, 0x43, 0x0, 0xd, '!', '@', 0x22 };
-    QByteArray aaa = QByteArray::fromRawData(mydata, 15);
-    slotSaveByteArray(aaa);*/
 }
 
 

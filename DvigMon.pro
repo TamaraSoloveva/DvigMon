@@ -1,5 +1,6 @@
 QT       += core gui \
             serialport \
+            charts
 
 
 

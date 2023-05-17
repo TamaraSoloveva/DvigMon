@@ -10,6 +10,7 @@
 #include <QVector>
 #include <QThread>
 #include <QFile>
+#include <QMessageBox>
 
 #include "CONST_VAL.h"
 #include "comPort.h"
@@ -79,6 +80,8 @@ private:
     void formAndSndMsg(const unsigned char & mode, const unsigned char & pulse, const uint16_t & freq);
     void startTest();
     void stopTest( bool byBtn );
+    void parseResult();
+    uint32_t countValues( const uint16_t & v );
     //void parseData( QVector<char> & vect );
 
 private slots:    
