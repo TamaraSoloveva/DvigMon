@@ -11,7 +11,8 @@
 
 Widget::Widget(QWidget *parent)
     : QWidget(parent)
-    , ui(new Ui::Widget), serPort(nullptr), thC(nullptr), rdSet_num(0), timer(nullptr), secNum(0), currSec(0), iCnt(0)
+    , ui(new Ui::Widget), serPort(nullptr), timer(nullptr), secNum(0), currSec(0), seriesI0(nullptr),
+        seriesI1(nullptr), seriesI2(nullptr), seriesU(nullptr),  iCnt(0)
 {
     ui->setupUi(this);
     updateComInfo();
@@ -86,9 +87,6 @@ void Widget::slot_manageTest() {
     if ( ui->pushButton->text() == "Start test") {
         startTest();
     }
-    else if ( ui->pushButton->text() == "Get result") {
-        slot_ParseResult();
-    }
     else {
         stopTest(true);
     }
@@ -114,6 +112,8 @@ void Widget::slot_ParseResult() {
         uint16_t wVal=0;
         double dwVal = 0;
         QByteArray line;
+        points.clear();
+        params.clear();
 
         while (! fl.atEnd()) {
             line = fl.readLine();
@@ -162,9 +162,17 @@ void Widget::slot_ParseResult() {
             delete[]hex;
         }
 
+        if (points.isEmpty()) {
+            fl.close();
+            emit signal_outMsgWithData("Bad file");
+            return;
+
+        }
+
         //построение графиков
         double min=0, max=0;
 
+        if (seriesI0) delete seriesI0;
         seriesI0 = new QLineSeries();
         min = points.at(0).at(0);
         max = points.at(0).at(0);
@@ -173,55 +181,66 @@ void Widget::slot_ParseResult() {
             if ( points.at(i).at(0) < min) min = points.at(i).at(0);
             if ( points.at(i).at(0) > max) max = points.at(i).at(0);
         }
+        chartI0->removeAllSeries();
         chartI0->addSeries(seriesI0);
         chartI0->createDefaultAxes();
         chartI0->axes(Qt::Horizontal).first()->setRange(0, points.size() );
         chartI0->axes(Qt::Vertical).first()->setRange((int)min, (int)max);
 
-
-         seriesI1 = new QLineSeries();
-         min = points.at(0).at(1);
-         max = points.at(0).at(1);
-         for (int i=0; i<points.size(); ++i){
+        if (seriesI1) delete seriesI1;
+        seriesI1 = new QLineSeries();
+        min = points.at(0).at(1);
+        max = points.at(0).at(1);
+        for (int i=0; i<points.size(); ++i){
              seriesI1->append(i, points.at(i).at(1));
-             if ( points.at(i).at(1) < min) min = points.at(i).at(1);
+             if ( points.at(i).at(1) < min)
+                 min = points.at(i).at(1);
              if ( points.at(i).at(1) > max) max = points.at(i).at(1);
          }
-         chartI1->addSeries(seriesI1);
-         chartI1->createDefaultAxes();
-         chartI1->axes(Qt::Horizontal).first()->setRange(0, points.size() );
-         chartI1->axes(Qt::Vertical).first()->setRange((int)min, (int)max);
+        chartI1->removeAllSeries();
+        chartI1->addSeries(seriesI1);
+        chartI1->createDefaultAxes();
+        chartI1->axes(Qt::Horizontal).first()->setRange(0, points.size() );
+        chartI1->axes(Qt::Vertical).first()->setRange((int)min, (int)max);
 
-    /*     seriesI2 = new QLineSeries();
-         min = points.at(0).at(2);
-         max = points.at(0).at(2);
-         for (int i=0; i<points.size(); ++i){
-             seriesI2->append(i, points.at(i).at(2));
-             if ( points.at(i).at(2) < min) min = points.at(i).at(2);
-             if ( points.at(i).at(2) > max) max = points.at(i).at(2);
-         }
-         chartI2->addSeries(seriesI2);
-         chartI2->createDefaultAxes();
-         chartI2->axes(Qt::Horizontal).first()->setRange(0, points.size() );
-         chartI2->axes(Qt::Vertical).first()->setRange((int)min, (int)max);
+        if (seriesI2) delete seriesI2;
+        seriesI2 = new QLineSeries();
+        min = points.at(0).at(2);
+        max = points.at(0).at(2);
+        for (int i=0; i<points.size(); ++i){
+            seriesI2->append(i, points.at(i).at(2));
+            if ( points.at(i).at(2) < min) min = points.at(i).at(2);
+            if ( points.at(i).at(2) > max) max = points.at(i).at(2);
+        }
+        chartI2->removeAllSeries();
+        chartI2->addSeries(seriesI2);
+        chartI2->createDefaultAxes();
+        chartI2->axes(Qt::Horizontal).first()->setRange(0, points.size() );
+        chartI2->axes(Qt::Vertical).first()->setRange((int)min, (int)max);
 
-         seriesU = new QLineSeries();
-         min = points.at(0).at(3);
-         max = points.at(0).at(3);
-         for (int i=0; i<points.size(); ++i){
-             seriesU->append(i, points.at(i).at(3));
-             if ( points.at(i).at(3) < min) min = points.at(i).at(3);
-             if ( points.at(i).at(3) > max) max = points.at(i).at(3);
-         }
-         chartU->addSeries(seriesU);
-         chartU->createDefaultAxes();
-         chartU->axes(Qt::Horizontal).first()->setRange(0, points.size() );
-         chartU->axes(Qt::Vertical).first()->setRange((int)min, (int)max);
-*/
+        if (seriesU) delete seriesU;
+        seriesU = new QLineSeries();
+        min = points.at(0).at(3);
+        max = points.at(0).at(3);
+        for (int i=0; i<points.size(); ++i){
+            seriesU->append(i, points.at(i).at(3));
+            if ( points.at(i).at(3) < min) min = points.at(i).at(3);
+            if ( points.at(i).at(3) > max) max = points.at(i).at(3);
+        }
+        chartU->removeAllSeries();
+        chartU->addSeries(seriesU);
+        chartU->createDefaultAxes();
+        chartU->axes(Qt::Horizontal).first()->setRange(0, points.size() );
+        chartU->axes(Qt::Vertical).first()->setRange((int)min, (int)max);
+
 
         emit signal_outMsgWithData("Charts from file "+filename+" ready");
+        fl.close();
 
     }
+    else
+         emit signal_outMsgWithData("File is empty");
+
 }
 
 
@@ -250,20 +269,20 @@ void Widget::slot_cleanScreen() {
 
 Widget::~Widget()
 {
-    delete seriesI0;
+    if (seriesI0) delete seriesI0;
     delete chartI0;
     delete chartViewI0;
 
-    delete seriesI1;
+    if (seriesI1) delete seriesI1;
     delete chartI1;
     delete chartViewI1;
 
-    delete seriesI2;
+    if (seriesI2) delete seriesI2;
     delete chartI2;
     delete chartViewI2;
 
 
-    delete seriesU;
+    if (seriesU) delete seriesU;
     delete chartU;
     delete chartViewU;
 
@@ -272,9 +291,9 @@ Widget::~Widget()
     delete ui;
 }
 
-void Widget::slot_outMsgWithData( const QString &str ) {
+void Widget::slot_outMsgWithData( const QString &str ) {    
     QString sOut = time.currentTime().toString();
-    sOut = sOut + " " + str;
+    sOut = "\n"+sOut + " " + str;
     ui->textEdit->append(sOut);
 }
 
@@ -304,10 +323,6 @@ void Widget::slot_stopConnection() {
         stopTest(true);
         timer = nullptr;
     }
-    if (thC && thC->isRunning()) {
-        emit signalStopThread();
-        thC = nullptr;
-    }
     if (fl.isOpen()) {
         fl.flush();
         fl.close();
@@ -315,7 +330,7 @@ void Widget::slot_stopConnection() {
 }
 
 void Widget::slot_setConnection() {
-    if (ui->comboBox->currentText().isEmpty()) {
+   if (ui->comboBox->currentText().isEmpty()) {
         emit signal_outMsgWithData("Error - Input COM-port number!!!");
         ui->pushButton_2->setChecked(true);
         return;

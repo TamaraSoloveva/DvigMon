@@ -20,7 +20,6 @@ QT_END_NAMESPACE
 
 #include "CONST_VAL.h"
 #include "comPort.h"
-#include "threadClass.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Widget; }
