@@ -95,7 +95,6 @@ private:
     void formAndSndMsg(const unsigned char & mode, const unsigned char & pulse, const uint16_t & freq);
     void startTest();
     void stopTest( bool byBtn );
-    void parseResult();
     double countValues( const uint16_t & v );
     //void parseData( QVector<char> & vect );
 
@@ -106,6 +105,7 @@ private slots:
     void slot_setConnection();
     void slot_stopConnection();
     void slot_outMsgWithData(const QString &str );
+    void slot_ParseResult();
 
     void slot_2(const QByteArray &str );
     void slotSaveByteArray( const QByteArray & arr);

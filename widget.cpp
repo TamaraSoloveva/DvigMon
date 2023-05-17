@@ -9,8 +9,6 @@
 
 #define PACK_SIZE 10
 
-
-
 Widget::Widget(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::Widget), serPort(nullptr), thC(nullptr), rdSet_num(0), timer(nullptr), secNum(0), currSec(0), iCnt(0)
@@ -24,14 +22,13 @@ Widget::Widget(QWidget *parent)
     ui->textEdit->setContextMenuPolicy(Qt::ActionsContextMenu);
 
     ui->lineEdit->setValidator( new QIntValidator(1, 1000000000));
-    ui->lineEdit->setText( QString::number(10));
-
 
     connect(actClean, &QAction::triggered, this, &Widget::slot_cleanScreen);
     //"Connect"
     connect(ui->pushButton_2, &QPushButton::clicked, this, &Widget::slot_connectToCom);
     //"Start test"
     connect(ui->pushButton, &QPushButton::clicked, this, &Widget::slot_manageTest);
+    connect(ui->pushButton_3, &QPushButton::clicked, this, &Widget::slot_ParseResult);
     connect(this, &Widget::signal_setConnection, this, &Widget::slot_setConnection);
     connect(this, &Widget::signal_stopConnection, this, &Widget::slot_stopConnection);
     connect(this, &Widget::signal_outMsgWithData, this, &Widget::slot_outMsgWithData);
@@ -41,15 +38,15 @@ Widget::Widget(QWidget *parent)
     iDataV.clear();
 
     // Создаём представление графиков
-    chartViewI0 = new QChartView(this);
-    ui->horizontalLayout_2->addWidget(chartViewI0);
-    chartI0 = new QChart();
+ //   chartViewI0 = new QChartView(this);
+  //  ui->horizontalLayout_2->addWidget(chartViewI0);
+  /*  chartI0 = new QChart();
     chartI0->legend()->hide();
     chartI0->createDefaultAxes();
     chartI0->setTitle("I0");
-    chartViewI0->setChart(chartI0);
+    chartViewI0->setChart(chartI0);*/
 
-
+/*
     QChartView *chartViewI1 = new QChartView(this);
     ui->horizontalLayout_2->addWidget(chartViewI1);
     QChart *chartI1 = new QChart();
@@ -72,7 +69,7 @@ Widget::Widget(QWidget *parent)
     chartU->legend()->hide();
     chartU->createDefaultAxes();
     chartU->setTitle("U");
-    chartViewU->setChart(chartU);
+    chartViewU->setChart(chartU);*/
 
 
 }
@@ -82,7 +79,7 @@ void Widget::slot_manageTest() {
         startTest();
     }
     else if ( ui->pushButton->text() == "Get result") {
-        parseResult();
+        slot_ParseResult();
     }
     else {
         stopTest(true);
@@ -94,7 +91,7 @@ double Widget::countValues( const uint16_t & v ) {
     return ((double) v * 0.076 - 2500);
 }
 
-void Widget::parseResult() {
+void Widget::slot_ParseResult() {
     QString filename = QFileDialog::getOpenFileName(nullptr, QObject::tr("Open Document"), QDir::currentPath(), QObject::tr("Document files (*.txt);;All files (*.*)"));
     if (!filename.isEmpty()) {
         QFile fl(filename);
@@ -162,7 +159,10 @@ void Widget::parseResult() {
         //построение графиков
         double min=0, max=0;
 
+
+
         seriesI0 = new QLineSeries();
+
         min = points.at(0).at(0);
         max = points.at(0).at(0);
         for (int i=0; i<points.size(); ++i){
@@ -309,15 +309,13 @@ void Widget::stopTest(bool byBtn) {
      timer->stop();
      delete timer;
      timer = nullptr;
-
+     ui->pushButton->setText("Start test");
      emit signalStopThread();
      if (byBtn) {
-        emit signal_outMsgWithData(QString("Test interrupted. Work time: %1 seconds").arg(currSec));
-         ui->pushButton->setText("Start test");
+        emit signal_outMsgWithData(QString("Test interrupted. Work time: %1 seconds").arg(currSec));       
      }
      else {
         emit signal_outMsgWithData("Write file finished.");
-         ui->pushButton->setText("Get result");
      }
      if (fl.isOpen()) {
          fl.flush();
