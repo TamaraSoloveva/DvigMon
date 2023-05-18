@@ -115,6 +115,7 @@ private slots:
     void slot_stopConnection();
     void slot_outMsgWithData(const QString &str );
     void slot_ParseResult();
+    void slot_saveCharts();
 
     void slot_2(const QByteArray &str );
     void slotSaveByteArray( const QByteArray & arr);

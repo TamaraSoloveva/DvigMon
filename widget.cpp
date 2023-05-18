@@ -7,6 +7,8 @@
 #include <QDir>
 #include <QFileDialog>
 
+
+
 #define PACK_SIZE 10
 
 Widget::Widget(QWidget *parent)
@@ -15,6 +17,9 @@ Widget::Widget(QWidget *parent)
         seriesI1(nullptr), seriesI2(nullptr), seriesU(nullptr),  iCnt(0)
 {
     ui->setupUi(this);
+
+    //QMenu*   pmnu   = new QMenu("&Menu");
+
     updateComInfo();
 
     flMenu = new QMenu;
@@ -34,6 +39,13 @@ Widget::Widget(QWidget *parent)
     connect(this, &Widget::signal_stopConnection, this, &Widget::slot_stopConnection);
     connect(this, &Widget::signal_outMsgWithData, this, &Widget::slot_outMsgWithData);
 
+    QMenu *pmnu   = new QMenu("&Menu");
+    pmnu->addAction("&Save charts", this,  SLOT(slot_saveCharts()), Qt::CTRL + Qt::Key_S);
+
+    QMenuBar *mnuBar;
+    mnuBar = new QMenuBar();
+    ui->gridLayout->addWidget(mnuBar);
+    mnuBar->addMenu(pmnu);
     val=tmp=cntr=numInArr=0;
 
     iDataV.clear();
@@ -82,6 +94,26 @@ Widget::Widget(QWidget *parent)
 
 
 }
+
+
+void Widget::slot_saveCharts() {
+    QPixmap p1 = chartViewI0->grab();
+    p1.save("i1.png", "PNG");
+
+    QPixmap p2 = chartViewI1->grab();
+    p2.save("i2.png", "PNG");
+
+    QPixmap p3 = chartViewI2->grab();
+    p3.save("i3.png", "PNG");
+
+    QPixmap pU = chartViewU->grab();
+    pU.save("u.png", "PNG");
+
+    emit signal_outMsgWithData("Charts was saved to " + QDir::currentPath() );
+
+}
+
+
 
 void Widget::slot_manageTest() {
     if ( ui->pushButton->text() == "Start test") {
@@ -302,7 +334,7 @@ void Widget::slot_2( const QByteArray &str ) {
 }
 
 
-void Widget::slot_connectToCom() {
+void Widget::slot_connectToCom() {    
     if (ui->pushButton_2->isChecked())
         emit signal_stopConnection();
     else
