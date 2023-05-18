@@ -136,8 +136,6 @@ void Widget::slot_ParseResult() {
         if (!fl.open(QIODevice::ReadOnly) ) {
            QMessageBox::critical(nullptr, "Error", "Unable to open file", QMessageBox::Ok);
         }
-
-
         uint8_t ch=0;
         bool isMsg = false;
         uint8_t tmp = 0;
@@ -146,17 +144,23 @@ void Widget::slot_ParseResult() {
         QByteArray line;
         points.clear();
         params.clear();
+        int ff=0;
 
-        while (! fl.atEnd()) {
+          while (! fl.atEnd()) {
             line = fl.readLine();
             const size_t count = line.size();
             unsigned char* hex =new unsigned char[count];
             memcpy(hex, line.constData(), count);
             for (size_t i=0; i<count; ++i) {
+                if (i == 52) {
+                    int d = 0;
+                }
                 ch = hex[i];
                 if (ch == '@') {
                     isMsg = true;
                     iCnt=1;
+                    params.clear();
+                    tmp = 0;
                     continue;
                 }
                 if ( isMsg ) {
@@ -165,19 +169,21 @@ void Widget::slot_ParseResult() {
                     case 3:
                     case 5:
                     case 7:
-                    case 9:
+
                         tmp = ch;
                         break;
                     case 2:
                     case 4:
                     case 6:
                     case 8:
-                    case 10:
                         wVal = ch;
                         wVal <<= 8;
                         wVal += (uint16_t)tmp;
                         dwVal = countValues(wVal);
                         params.push_back(dwVal);
+                        break;
+                    case 9:
+                    case 10:
                         break;
                     case 11:
                         if (ch == '!') {
@@ -192,7 +198,11 @@ void Widget::slot_ParseResult() {
                 iCnt++;
             }
             delete[]hex;
+            ff++;
+
+
         }
+
 
         if (points.isEmpty()) {
             fl.close();
@@ -203,6 +213,8 @@ void Widget::slot_ParseResult() {
 
         //построение графиков
         double min=0, max=0;
+
+
 
         if (seriesI0) delete seriesI0;
         seriesI0 = new QLineSeries();
@@ -216,7 +228,7 @@ void Widget::slot_ParseResult() {
         chartI0->removeAllSeries();
         chartI0->addSeries(seriesI0);
         chartI0->createDefaultAxes();
-        chartI0->axes(Qt::Horizontal).first()->setRange(0, points.size() );
+       chartI0->axes(Qt::Horizontal).first()->setRange(0, points.size() );
         chartI0->axes(Qt::Vertical).first()->setRange((int)min, (int)max);
 
         if (seriesI1) delete seriesI1;
