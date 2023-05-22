@@ -24,7 +24,7 @@ private:
     void writeRawData(QByteArray data );
 
 public slots:
-    void slot_writeData(QByteArray data) {  qDebug()<<"data1="<<data.size(); writeRawData(data); }
+    void slot_writeData(QByteArray data) {  /*qDebug()<<"data1="<<data.size();*/ writeRawData(data); }
 
 signals:
     void receive_data(QByteArray tmp);

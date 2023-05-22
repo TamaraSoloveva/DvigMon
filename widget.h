@@ -100,7 +100,6 @@ private:
 
     void updateComInfo();
     void sortAlphabetically();
-    void formAndSndMsg(const unsigned char & mode, const unsigned char & pulse, const uint16_t & freq);
     void startTest();
     void stopTest( bool byBtn );
     double countValues( const uint16_t & v );

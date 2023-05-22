@@ -227,9 +227,9 @@ void Widget::slot_ParseResult() {
                         wVal <<= 8;
                         wVal += (uint16_t)tmp;
                         dwVal = countValues(wVal);
-                        if ((dwVal > -771) && (dwVal < -770)) {
+/*                        if ((dwVal > -771) && (dwVal < -770)) {
                             int t=0;
-                        }
+                        }*/
                         params.push_back(dwVal);
                         break;
                     case 9:
@@ -334,24 +334,6 @@ void Widget::slot_ParseResult() {
 
 }
 
-
-
-void Widget::formAndSndMsg(const unsigned char &mode, const unsigned char &pulse, const uint16_t &freq) {
- /*   msgCmd.wrs.strt = 0x35;
-    msgCmd.wrs.mode = mode;
-    msgCmd.wrs.pulse = pulse;
-    msgCmd.wrs.freq = freq;
-    msgCmd.wrs.rsrv = 0;
-
-    uint16_t chSm=0;
-
-    for (i=0; i<sizeof(wr_st_t)-2; ++i){
-        chSm += msgCmd.msgMas[i];
-    }
-    msgCmd.wrs.chSm = chSm;*/
-  /*  QByteArray data = QByteArray(reinterpret_cast<char *>(msgCmd.msgMas), sizeof(msgCmd.msgMas));
-    emit signal_wrData(data);*/
-}
 
 void Widget::slot_cleanScreen() {
     ui->textEdit->clear();
@@ -493,7 +475,7 @@ void Widget::stopTest(bool byBtn) {
 }
 
 void Widget::updateTime() {
-    qDebug() << "timer\n";
+    //qDebug() << "timer\n";
     if (iDataV.isEmpty()) {
         QMutexLocker locker(&mutex);
         qDataV = vecRawData;

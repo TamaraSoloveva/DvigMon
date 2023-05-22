@@ -23,7 +23,7 @@ SerialPort::SerialPort (QString name, qint32 spd, QSerialPort::StopBits sb,
 
 SerialPort::~SerialPort() {
     serial->close();
-    qDebug()<< "closed";
+    //qDebug()<< "closed";
 }
 
 void SerialPort::readRawData() {
