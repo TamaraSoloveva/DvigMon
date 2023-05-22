@@ -31,11 +31,9 @@ class threadClass;
 #pragma pack(push, 1)
 typedef struct wr_st_t {
     unsigned char strt;
-    unsigned char mode;
-    unsigned char pulse;
-    uint16_t freq;
-    unsigned char rsrv;
-    uint16_t chSm;
+    unsigned char range;
+    unsigned char freq;
+    unsigned char end;
 }wrStruct;
 #pragma pack(pop)
 
@@ -119,6 +117,7 @@ private slots:
 
     void slot_2(const QByteArray &str );
     void slotSaveByteArray( const QByteArray & arr);
+    void slot_sendData();
 
     void updateTime();
 signals:

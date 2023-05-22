@@ -28,6 +28,8 @@ Widget::Widget(QWidget *parent)
     ui->textEdit->setContextMenuPolicy(Qt::ActionsContextMenu);
 
     ui->lineEdit->setValidator( new QIntValidator(1, 1000000000));
+    ui->lineEdit_2->setValidator( new QIntValidator(0, 100));
+    ui->lineEdit_3->setValidator( new QIntValidator(0, 60));
 
     connect(actClean, &QAction::triggered, this, &Widget::slot_cleanScreen);
     //"Connect"
@@ -35,6 +37,7 @@ Widget::Widget(QWidget *parent)
     //"Start test"
     connect(ui->pushButton, &QPushButton::clicked, this, &Widget::slot_manageTest);
     connect(ui->pushButton_3, &QPushButton::clicked, this, &Widget::slot_ParseResult);
+    connect(ui->pushButton_4, &QPushButton::clicked, this, &Widget::slot_sendData);
     connect(this, &Widget::signal_setConnection, this, &Widget::slot_setConnection);
     connect(this, &Widget::signal_stopConnection, this, &Widget::slot_stopConnection);
     connect(this, &Widget::signal_outMsgWithData, this, &Widget::slot_outMsgWithData);
@@ -96,6 +99,36 @@ Widget::Widget(QWidget *parent)
 }
 
 
+void Widget::slot_sendData() {
+    if ( ui->lineEdit_2->text().isEmpty() || ui->lineEdit_3->text().isEmpty() ) {
+        emit signal_outMsgWithData("Input range and frequency");
+        return;
+    }
+
+    int r =  ui->lineEdit_2->text().toInt() ;
+    int f =  ui->lineEdit_3->text().toInt() ;
+    if (( r < 0) || ( r > 100)) {
+        emit signal_outMsgWithData("Error in range");
+        return;
+    }
+
+
+    if (( f < 0) || ( f > 60)) {
+        emit signal_outMsgWithData("Error in frequency");
+        return;
+    }
+
+    msgCmd.wrs.strt = '@';
+    msgCmd.wrs.range = (unsigned char)r;
+    msgCmd.wrs.freq = (unsigned char)f;
+    msgCmd.wrs.end = '!';
+
+    QByteArray data = QByteArray(reinterpret_cast<char *>(msgCmd.msgMas), sizeof(msgCmd.msgMas));
+    emit signal_wrData(data);
+    emit signal_outMsgWithData("Send " + QString::number(r, 10) + " range and "  + QString::number(f, 10) +  " frequency");
+}
+
+
 void Widget::slot_saveCharts() {
     QPixmap p1 = chartViewI0->grab();
     p1.save("i1.png", "PNG");
@@ -144,32 +177,46 @@ void Widget::slot_ParseResult() {
         QByteArray line;
         points.clear();
         params.clear();
-        int ff=0;
 
-          while (! fl.atEnd()) {
+        while (! fl.atEnd()) {
             line = fl.readLine();
             const size_t count = line.size();
             unsigned char* hex =new unsigned char[count];
             memcpy(hex, line.constData(), count);
             for (size_t i=0; i<count; ++i) {
-                if (i == 52) {
-                    int d = 0;
-                }
                 ch = hex[i];
                 if (ch == '@') {
                     isMsg = true;
                     iCnt=1;
                     params.clear();
                     tmp = 0;
+                    dwVal=0;
+                    wVal=0;
                     continue;
                 }
+
+                if ((ch == '!') && (iCnt != 11)) {
+                    isMsg = false;
+                    iCnt=0;
+                    params.clear();
+                    tmp = 0;
+                    continue;
+                }
+
+                if (iCnt > 11) {
+                    isMsg = false;
+                    iCnt=0;
+                    params.clear();
+                    tmp = 0;
+                    continue;
+                }
+
                 if ( isMsg ) {
                     switch(iCnt) {
                     case 1:
                     case 3:
                     case 5:
                     case 7:
-
                         tmp = ch;
                         break;
                     case 2:
@@ -180,6 +227,9 @@ void Widget::slot_ParseResult() {
                         wVal <<= 8;
                         wVal += (uint16_t)tmp;
                         dwVal = countValues(wVal);
+                        if ((dwVal > -771) && (dwVal < -770)) {
+                            int t=0;
+                        }
                         params.push_back(dwVal);
                         break;
                     case 9:
@@ -198,10 +248,7 @@ void Widget::slot_ParseResult() {
                 iCnt++;
             }
             delete[]hex;
-            ff++;
-
-
-        }
+       }
 
 
         if (points.isEmpty()) {
@@ -228,7 +275,7 @@ void Widget::slot_ParseResult() {
         chartI0->removeAllSeries();
         chartI0->addSeries(seriesI0);
         chartI0->createDefaultAxes();
-       chartI0->axes(Qt::Horizontal).first()->setRange(0, points.size() );
+        chartI0->axes(Qt::Horizontal).first()->setRange(0, points.size() );
         chartI0->axes(Qt::Vertical).first()->setRange((int)min, (int)max);
 
         if (seriesI1) delete seriesI1;
@@ -290,8 +337,7 @@ void Widget::slot_ParseResult() {
 
 
 void Widget::formAndSndMsg(const unsigned char &mode, const unsigned char &pulse, const uint16_t &freq) {
-    unsigned int i=0;
-    msgCmd.wrs.strt = 0x35;
+ /*   msgCmd.wrs.strt = 0x35;
     msgCmd.wrs.mode = mode;
     msgCmd.wrs.pulse = pulse;
     msgCmd.wrs.freq = freq;
@@ -302,9 +348,9 @@ void Widget::formAndSndMsg(const unsigned char &mode, const unsigned char &pulse
     for (i=0; i<sizeof(wr_st_t)-2; ++i){
         chSm += msgCmd.msgMas[i];
     }
-    msgCmd.wrs.chSm = chSm;
-    QByteArray data = QByteArray(reinterpret_cast<char *>(msgCmd.msgMas), sizeof(msgCmd.msgMas));
-    emit signal_wrData(data);
+    msgCmd.wrs.chSm = chSm;*/
+  /*  QByteArray data = QByteArray(reinterpret_cast<char *>(msgCmd.msgMas), sizeof(msgCmd.msgMas));
+    emit signal_wrData(data);*/
 }
 
 void Widget::slot_cleanScreen() {
