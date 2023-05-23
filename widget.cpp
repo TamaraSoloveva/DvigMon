@@ -116,9 +116,7 @@ void Widget::slot_sendData() {
     msgCmd.wrs.range = (unsigned char)r;
     msgCmd.wrs.freq = (unsigned char)f;
     msgCmd.wrs.end = '!';
-
-    QByteArray data = QByteArray(reinterpret_cast<char *>(msgCmd.msgMas), sizeof(msgCmd.msgMas));
-    emit signal_wrData(data);
+    writeSerialPort(msgCmd);
     emit signal_outMsgWithData("Send " + QString::number(r, 10) + " range and "  + QString::number(f, 10) +  " frequency");
 }
 
@@ -449,15 +447,25 @@ void Widget::startTest() {
     else {
         emit signal_outMsgWithData("Unable to open log file ");
     }
+
+    msgCmd.wrs.strt = '@';
+    msgCmd.wrs.range = '!';
+    msgCmd.wrs.freq = '@';
+    writeSerialPort(msgCmd, 3);
 }
 
+
+void Widget::writeSerialPort( wrCmdMsg & msgCmd, size_t sz ) {
+    if (!sz) sz = sizeof(msgCmd.msgMas);
+    QByteArray data = QByteArray(reinterpret_cast< char *>(msgCmd.msgMas), sz);
+    if (m_serial->isOpen()) m_serial->write(data);
+}
 
 void Widget::stopTest(bool byBtn) {
      timer->stop();
      delete timer;
      timer = nullptr;
      ui->pushButton->setText("Start test");
-     emit signalStopThread();
      if (byBtn) {
         emit signal_outMsgWithData(QString("Test interrupted. Work time: %1 seconds").arg(currSec));       
      }
@@ -468,6 +476,10 @@ void Widget::stopTest(bool byBtn) {
          fl.flush();
          fl.close();
      }
+     msgCmd.wrs.strt = '@';
+     msgCmd.wrs.range = '?';
+     msgCmd.wrs.freq = '@';
+     writeSerialPort(msgCmd, 3);
 }
 
 void Widget::updateTime() {
@@ -482,7 +494,7 @@ void Widget::updateTime() {
             for (int j=0; j < tmpArr.size(); ++j)
                 iDataV.push_back(tmpArr.at(j));
         }
-        emit signalForThread(iDataV);
+        //emit signalForThread(iDataV);
     }
     currSec++;
 

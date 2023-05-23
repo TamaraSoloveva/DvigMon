@@ -104,6 +104,7 @@ private:
     double countValues( const uint16_t & v );
     int openSerialPort();
     void closeSerialPort();
+    void writeSerialPort( wrCmdMsg & msgCmd, size_t sz = 0 );
     void SaveByteArray( const QByteArray & arr);
 
 private slots:    
@@ -126,10 +127,6 @@ private slots:
     void updateTime();
 signals:
     void signal_outMsgWithData( QString str );
-    void signal_wrData(QByteArray data);
-    void signalStopThread();
-    void signalForThread( QVector<char>v);
-
     //COM port
     void signalSaveByteArray(QByteArray tmp);
 
