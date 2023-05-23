@@ -15,13 +15,10 @@ CONFIG += c++11
 
 
 SOURCES += \
-    comPort.cpp \
     main.cpp \
     widget.cpp
 
 HEADERS += \
-    CONST_VAL.h \
-    comPort.h \
     ui_widget.h \
     widget.h
 

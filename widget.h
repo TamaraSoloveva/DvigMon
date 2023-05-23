@@ -11,6 +11,11 @@
 #include <QThread>
 #include <QFile>
 #include <QMessageBox>
+#include <QtSerialPort/QSerialPort>
+#include <QtSerialPort/QSerialPortInfo>
+#include <QMenuBar>
+#include <QDir>
+#include <QFileDialog>
 
 QT_BEGIN_NAMESPACE
 #include <QChart>
@@ -18,15 +23,10 @@ QT_BEGIN_NAMESPACE
 #include <QLineSeries>
 QT_END_NAMESPACE
 
-#include "CONST_VAL.h"
-#include "comPort.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Widget; }
 QT_END_NAMESPACE
-
-class SerialPort;
-class threadClass;
 
 #pragma pack(push, 1)
 typedef struct wr_st_t {
@@ -54,8 +54,6 @@ public:
 
 private:
     Ui::Widget *ui;
-    SerialPort *serPort;
-    threadClass *thC;
     QMenu *flMenu;
     QAction *actClean;
     wrCmdMsg msgCmd;
@@ -97,12 +95,16 @@ private:
     QLineSeries *seriesU;
 
     int iCnt;
+    QSerialPort *m_serial;
 
     void updateComInfo();
     void sortAlphabetically();
     void startTest();
     void stopTest( bool byBtn );
     double countValues( const uint16_t & v );
+    int openSerialPort();
+    void closeSerialPort();
+    void SaveByteArray( const QByteArray & arr);
 
 private slots:    
     void slot_connectToCom();
@@ -114,18 +116,22 @@ private slots:
     void slot_ParseResult();
     void slot_saveCharts();
 
-    void slot_2(const QByteArray &str );
-    void slotSaveByteArray( const QByteArray & arr);
+
     void slot_sendData();
+
+    //COM port
+    void readRawData();
+    void handleError(QSerialPort::SerialPortError error);
 
     void updateTime();
 signals:
-    void signal_setConnection();
-    void signal_stopConnection();
     void signal_outMsgWithData( QString str );
     void signal_wrData(QByteArray data);
     void signalStopThread();
     void signalForThread( QVector<char>v);
+
+    //COM port
+    void signalSaveByteArray(QByteArray tmp);
 
 };
 

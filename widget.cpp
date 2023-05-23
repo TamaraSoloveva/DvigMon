@@ -1,25 +1,14 @@
 #include "widget.h"
 #include "ui_widget.h"
-#include <QDebug>
-#include <QtSerialPort/QSerialPort>
-#include <QtSerialPort/QSerialPortInfo>
-#include <QMenuBar>
-#include <QDir>
-#include <QFileDialog>
 
 
-
-#define PACK_SIZE 10
 
 Widget::Widget(QWidget *parent)
     : QWidget(parent)
-    , ui(new Ui::Widget), serPort(nullptr), timer(nullptr), secNum(0), currSec(0), seriesI0(nullptr),
-        seriesI1(nullptr), seriesI2(nullptr), seriesU(nullptr),  iCnt(0)
+    , ui(new Ui::Widget), timer(nullptr), secNum(0), currSec(0), seriesI0(nullptr),
+        seriesI1(nullptr), seriesI2(nullptr), seriesU(nullptr),  iCnt(0),  m_serial(new QSerialPort(this))
 {
     ui->setupUi(this);
-
-    //QMenu*   pmnu   = new QMenu("&Menu");
-
     updateComInfo();
 
     flMenu = new QMenu;
@@ -38,17 +27,19 @@ Widget::Widget(QWidget *parent)
     connect(ui->pushButton, &QPushButton::clicked, this, &Widget::slot_manageTest);
     connect(ui->pushButton_3, &QPushButton::clicked, this, &Widget::slot_ParseResult);
     connect(ui->pushButton_4, &QPushButton::clicked, this, &Widget::slot_sendData);
-    connect(this, &Widget::signal_setConnection, this, &Widget::slot_setConnection);
-    connect(this, &Widget::signal_stopConnection, this, &Widget::slot_stopConnection);
     connect(this, &Widget::signal_outMsgWithData, this, &Widget::slot_outMsgWithData);
+
+    //COM port
+    connect( m_serial, &QSerialPort::readyRead, this, &Widget::readRawData);
+    connect( m_serial, &QSerialPort::errorOccurred, this, &Widget::handleError);
 
     QMenu *pmnu   = new QMenu("&Menu");
     pmnu->addAction("&Save charts", this,  SLOT(slot_saveCharts()), Qt::CTRL + Qt::Key_S);
-
     QMenuBar *mnuBar;
     mnuBar = new QMenuBar();
     ui->gridLayout->addWidget(mnuBar);
     mnuBar->addMenu(pmnu);
+
     val=tmp=cntr=numInArr=0;
 
     iDataV.clear();
@@ -94,14 +85,17 @@ Widget::Widget(QWidget *parent)
     chartU->createDefaultAxes();
     chartU->setTitle("U");
     chartViewU->setChart(chartU);
+}
 
-
+void Widget::readRawData() {
+    QByteArray rdData = m_serial->readAll();
+    SaveByteArray(rdData );
 }
 
 
 void Widget::slot_sendData() {
     if ( ui->lineEdit_2->text().isEmpty() || ui->lineEdit_3->text().isEmpty() ) {
-        emit signal_outMsgWithData("Input range and frequency");
+        emit signal_outMsgWithData("Error - Input range and frequency");
         return;
     }
 
@@ -143,7 +137,6 @@ void Widget::slot_saveCharts() {
     pU.save("u.png", "PNG");
 
     emit signal_outMsgWithData("Charts was saved to " + QDir::currentPath() );
-
 }
 
 
@@ -190,8 +183,6 @@ void Widget::slot_ParseResult() {
                     iCnt=1;
                     params.clear();
                     tmp = 0;
-                    dwVal=0;
-                    wVal=0;
                     continue;
                 }
 
@@ -260,9 +251,6 @@ void Widget::slot_ParseResult() {
 
         //построение графиков
         double min=0, max=0;
-
-
-
         if (seriesI0) delete seriesI0;
         seriesI0 = new QLineSeries();
         min = points.at(0).at(0);
@@ -339,8 +327,7 @@ void Widget::slot_cleanScreen() {
     ui->textEdit->clear();
 }
 
-Widget::~Widget()
-{
+Widget::~Widget() {
     if (seriesI0) delete seriesI0;
     delete chartI0;
     delete chartViewI0;
@@ -369,16 +356,12 @@ void Widget::slot_outMsgWithData( const QString &str ) {
     ui->textEdit->append(sOut);
 }
 
-void Widget::slot_2( const QByteArray &str ) {
-    ui->textEdit->append(str);
-}
-
 
 void Widget::slot_connectToCom() {    
-    if (ui->pushButton_2->isChecked())
-        emit signal_stopConnection();
+    if (ui->pushButton_2->text() == "Disconnect")
+        slot_stopConnection();
     else
-        emit signal_setConnection();
+        slot_setConnection();
 }
 
 
@@ -387,10 +370,7 @@ void Widget::slot_stopConnection() {
     ui->pushButton_2->setText("Connect");
     ui->comboBox->setEnabled(true);
     ui->pushButton->setEnabled(false);
-    if (serPort) {
-        delete serPort;
-        serPort=nullptr;
-    }
+    closeSerialPort();
     if (timer) {
         stopTest(true);
         timer = nullptr;
@@ -407,25 +387,41 @@ void Widget::slot_setConnection() {
         ui->pushButton_2->setChecked(true);
         return;
     }
+   if (openSerialPort() == -1)
+       return;
+   ui->pushButton_2->setText("Disconnect");
+   ui->pushButton->setEnabled(true);
+   ui->comboBox->setEnabled(false);
+}
 
-    emit signal_outMsgWithData("Connected to COM-port");
-    ui->pushButton_2->setText("Disconnect");
-    ui->pushButton->setEnabled(true);
-    ui->comboBox->setEnabled(false);
+int Widget::openSerialPort() {
+    m_serial->setPortName(ui->comboBox->currentText());
+    m_serial->setBaudRate(115200);
+    m_serial->setDataBits(QSerialPort::Data8);
+    m_serial->setParity(QSerialPort::NoParity);
+    m_serial->setStopBits(QSerialPort::OneStop);
+    m_serial->setFlowControl(QSerialPort::NoFlowControl);
+    if (m_serial->open(QIODevice::ReadWrite)) {
+        emit signal_outMsgWithData("Connected to COM-port");
+        return 0;
 
-    try {
-        serPort = new SerialPort(ui->comboBox->currentText(), 115200, QSerialPort::OneStop,
-                           QSerialPort::Data8,  QSerialPort::NoParity );    
     }
-    catch(std::bad_alloc &exc) {
-        emit signal_outMsgWithData("Error - Allocation memory!!!");
+    else {
+        emit signal_outMsgWithData("Error - " +  m_serial->errorString() );
+        return -1;
     }
+}
 
-    connect(serPort, &SerialPort::signal_outMsgWithDataCom, this, &Widget::slot_outMsgWithData);
-    connect(serPort, &SerialPort::signalSaveByteArray, this, &Widget::slotSaveByteArray);
-    connect(this, &Widget::signal_wrData, serPort, &SerialPort::slot_writeData);
-    connect(serPort, &SerialPort::sig, this, &Widget::slot_2);
+void Widget::closeSerialPort() {
+    if (m_serial->isOpen())
+        m_serial->close();
+}
 
+void Widget::handleError(QSerialPort::SerialPortError error) {
+    if (error == QSerialPort::ResourceError) {
+        emit signal_outMsgWithData("Error - " +  m_serial->errorString() );
+        slot_stopConnection();
+    }
 }
 
 
@@ -475,7 +471,6 @@ void Widget::stopTest(bool byBtn) {
 }
 
 void Widget::updateTime() {
-    //qDebug() << "timer\n";
     if (iDataV.isEmpty()) {
         QMutexLocker locker(&mutex);
         qDataV = vecRawData;
@@ -497,10 +492,9 @@ void Widget::updateTime() {
 }
 
 
-void Widget::slotSaveByteArray( const QByteArray &arr) {
-    QMutexLocker locker(&mutex);
-    vecRawData.push_back(arr);
+void Widget::SaveByteArray( const QByteArray &arr) {
     fl.write(arr);
+    fl.flush();
 }
 
 void Widget::sortAlphabetically() {
