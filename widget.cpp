@@ -246,14 +246,14 @@ void Widget::slot_ParseResult() {
             return;
 
         }
-
+        int sz = points.size();
         //построение графиков
         double min=0, max=0;
         if (seriesI0) delete seriesI0;
         seriesI0 = new QLineSeries();
         min = points.at(0).at(0);
         max = points.at(0).at(0);
-        for (int i=0; i<points.size(); ++i){
+        for (int i=0; i<sz; ++i){
             seriesI0->append(i, points.at(i).at(0));
             if ( points.at(i).at(0) < min) min = points.at(i).at(0);
             if ( points.at(i).at(0) > max) max = points.at(i).at(0);
@@ -261,14 +261,16 @@ void Widget::slot_ParseResult() {
         chartI0->removeAllSeries();
         chartI0->addSeries(seriesI0);
         chartI0->createDefaultAxes();
-        chartI0->axes(Qt::Horizontal).first()->setRange(0, points.size() );
+        chartI0->axes(Qt::Horizontal).first()->setRange(0, sz );
         chartI0->axes(Qt::Vertical).first()->setRange((int)min, (int)max);
 
         if (seriesI1) delete seriesI1;
         seriesI1 = new QLineSeries();
         min = points.at(0).at(1);
         max = points.at(0).at(1);
-        for (int i=0; i<points.size(); ++i){
+
+
+        for (int i=0; i<sz; ++i){
              seriesI1->append(i, points.at(i).at(1));
              if ( points.at(i).at(1) < min)
                  min = points.at(i).at(1);
@@ -284,7 +286,7 @@ void Widget::slot_ParseResult() {
         seriesI2 = new QLineSeries();
         min = points.at(0).at(2);
         max = points.at(0).at(2);
-        for (int i=0; i<points.size(); ++i){
+        for (int i=0; i<sz; ++i){
             seriesI2->append(i, points.at(i).at(2));
             if ( points.at(i).at(2) < min) min = points.at(i).at(2);
             if ( points.at(i).at(2) > max) max = points.at(i).at(2);
@@ -299,7 +301,7 @@ void Widget::slot_ParseResult() {
         seriesU = new QLineSeries();
         min = points.at(0).at(3);
         max = points.at(0).at(3);
-        for (int i=0; i<points.size(); ++i){
+        for (int i=0; i<sz; ++i){
             seriesU->append(i, points.at(i).at(3));
             if ( points.at(i).at(3) < min) min = points.at(i).at(3);
             if ( points.at(i).at(3) > max) max = points.at(i).at(3);
@@ -451,7 +453,8 @@ void Widget::startTest() {
     msgCmd.wrs.strt = '@';
     msgCmd.wrs.range = '!';
     msgCmd.wrs.freq = '@';
-    writeSerialPort(msgCmd, 3);
+    msgCmd.wrs.end = '$';
+    writeSerialPort(msgCmd, 4);
 }
 
 
@@ -479,7 +482,8 @@ void Widget::stopTest(bool byBtn) {
      msgCmd.wrs.strt = '@';
      msgCmd.wrs.range = '?';
      msgCmd.wrs.freq = '@';
-     writeSerialPort(msgCmd, 3);
+     msgCmd.wrs.end = '$';
+     writeSerialPort(msgCmd, 4);
 }
 
 void Widget::updateTime() {
