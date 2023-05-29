@@ -246,7 +246,7 @@ void Widget::slot_ParseResult() {
             return;
 
         }
-        int sz = points.size();
+        const int sz = points.size();
         //построение графиков
         double min=0, max=0;
         if (seriesI0) delete seriesI0;
@@ -268,7 +268,6 @@ void Widget::slot_ParseResult() {
         seriesI1 = new QLineSeries();
         min = points.at(0).at(1);
         max = points.at(0).at(1);
-
 
         for (int i=0; i<sz; ++i){
              seriesI1->append(i, points.at(i).at(1));
@@ -311,7 +310,6 @@ void Widget::slot_ParseResult() {
         chartU->createDefaultAxes();
         chartU->axes(Qt::Horizontal).first()->setRange(0, points.size() );
         chartU->axes(Qt::Vertical).first()->setRange((int)min, (int)max);
-
 
         emit signal_outMsgWithData("Charts from file "+filename+" ready");
         fl.close();
