@@ -71,22 +71,14 @@ void ChartView::mouseReleaseEvent(QMouseEvent *event) {
         m_isTouching = false;
         lastPos = event->pos();
         int deltaX = lastPos.x() - firstPos.x();
-        if ( deltaX < 0)
-            chart()->scroll(deltaX, 0);
-        else
-            chart()->scroll(deltaX *(-1), 0);
+        chart()->scroll(deltaX*(-1), 0);
 
         int deltaY = lastPos.y() - firstPos.y();
-        if ( deltaY > 0)
-            chart()->scroll(0, deltaY);
-        else
-            chart()->scroll(0, deltaY *(-1));
-
+        chart()->scroll(0, deltaY );
     }
     // Because we disabled animations when touch event was detected
     // we must put them back on
     chart()->setAnimationOptions(QChart::SeriesAnimations);
-
     QChartView::mouseReleaseEvent(event);
 }
 
