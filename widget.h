@@ -16,12 +16,19 @@
 #include <QMenuBar>
 #include <QDir>
 #include <QFileDialog>
+#include <QIODevice>
+
+#include "chart.h"
+#include "chartview.h"
 
 QT_BEGIN_NAMESPACE
 #include <QChart>
 #include <QChartView>
 #include <QLineSeries>
 QT_END_NAMESPACE
+
+
+#define NUM_READ 10 // порядок медианы
 
 
 QT_BEGIN_NAMESPACE
@@ -70,29 +77,38 @@ private:
     int tmp=0;
     int cntr=0;
     int numInArr=0;
+    bool zeroCycle;
+    QVector<float>shiftVec;
 
-    //QVector <char> vecRawData;
     QVector <QByteArray> vecRawData;
     QVector<char> iDataV;
     QVector<QByteArray> qDataV;
-    QVector<double> params;
-    QVector<QVector<double>>points;
+    QVector<float> params;
+    QVector<QVector<float>>points;
 
-    QChartView *chartViewI0;
-    QChart *chartI0;
+    ChartView *chartViewI0;
+    Chart *chartI0;
     QLineSeries *seriesI0;
+    QLineSeries *seriesKI0;
+    QLineSeries *seriesMedI0;
 
-    QChartView *chartViewI1;
+    ChartView *chartViewI1;
     QChart *chartI1;
     QLineSeries *seriesI1;
+    QLineSeries *seriesKI1;
+    QLineSeries *seriesMedI1;
 
-    QChartView *chartViewI2;
-    QChart *chartI2;
+    ChartView *chartViewI2;
+    Chart *chartI2;
     QLineSeries *seriesI2;
+    QLineSeries *seriesKI2;
+    QLineSeries *seriesMedI2;
 
-    QChartView *chartViewU;
-    QChart *chartU;
+    ChartView *chartViewU;
+    Chart *chartU;
     QLineSeries *seriesU;
+    QLineSeries *seriesKU;
+    QLineSeries *seriesMedU;
 
     int iCnt;
     QSerialPort *m_serial;
@@ -101,11 +117,13 @@ private:
     void sortAlphabetically();
     void startTest();
     void stopTest( bool byBtn );
-    double countValues( const uint16_t & v );
+    float countValues( const uint16_t & v );
     int openSerialPort();
     void closeSerialPort();
     void writeSerialPort( wrCmdMsg & msgCmd, size_t sz = 0 );
     void SaveByteArray( const QByteArray & arr);
+    float findMedianN_optim(const float & newVal);
+    void printCharts( const QVector<QVector<float>> &points, const float  & k);
 
 private slots:    
     void slot_connectToCom();
@@ -116,14 +134,10 @@ private slots:
     void slot_outMsgWithData(const QString &str );
     void slot_ParseResult();
     void slot_saveCharts();
-
-
     void slot_sendData();
-
     //COM port
     void readRawData();
     void handleError(QSerialPort::SerialPortError error);
-
     void updateTime();
 signals:
     void signal_outMsgWithData( QString str );

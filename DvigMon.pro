@@ -15,10 +15,14 @@ CONFIG += c++11
 
 
 SOURCES += \
+    chart.cpp \
+    chartview.cpp \
     main.cpp \
     widget.cpp
 
 HEADERS += \
+    chart.h \
+    chartview.h \
     ui_widget.h \
     widget.h
 
