@@ -17,6 +17,7 @@
 #include <QDir>
 #include <QFileDialog>
 #include <QIODevice>
+#include <QObject>
 
 #include "chart.h"
 #include "chartview.h"
@@ -25,7 +26,13 @@ QT_BEGIN_NAMESPACE
 #include <QChart>
 #include <QChartView>
 #include <QLineSeries>
+#include <QLegendMarker>
 QT_END_NAMESPACE
+
+#define CH1_LEG "до фильтрации"
+#define CH2_LEG "медианный"
+#define CH3_LEG "бегущее среднее"
+
 
 
 #define NUM_READ 10 // порядок медианы
@@ -79,6 +86,7 @@ private:
     int numInArr=0;
     bool zeroCycle;
     QVector<float>shiftVec;
+    QLegendMarker *markI0, *markIMed, *markIk;
 
     QVector <QByteArray> vecRawData;
     QVector<char> iDataV;
@@ -135,10 +143,13 @@ private slots:
     void slot_ParseResult();
     void slot_saveCharts();
     void slot_sendData();
+
     //COM port
     void readRawData();
     void handleError(QSerialPort::SerialPortError error);
     void updateTime();
+public slots:
+    void handleMarkerClicked();
 signals:
     void signal_outMsgWithData( QString str );
     //COM port

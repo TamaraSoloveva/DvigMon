@@ -64,7 +64,14 @@ Widget::Widget(QWidget *parent)
     chartViewI0 = new ChartView(chartI0);
     QVBoxLayout *vbox0 = new QVBoxLayout;
     vbox0->addWidget(chartViewI0);
-    ui->tab_4->setLayout(vbox0);
+    ui->tab_4->setLayout(vbox0);   
+//    markI0 = chartI0->legend()->markers()[0];
+//    markIMed = chartI0->legend()->markers()[1];
+//    markIk = chartI0->legend()->markers()[2];
+//    connect(markI0, &QLegendMarker::clicked, this, &Widget::handleMarkerClicked);
+//    connect(markIMed, &QLegendMarker::clicked, this, &Widget::handleMarkerClicked);
+//    connect(markIk, &QLegendMarker::clicked, this, &Widget::handleMarkerClicked);
+
 
     chartI1 = new Chart();
     chartI1->legend()->setAlignment(Qt::AlignBottom);
@@ -95,7 +102,28 @@ Widget::Widget(QWidget *parent)
     QVBoxLayout *vbox3 = new QVBoxLayout;
     vbox3->addWidget(chartViewU);
     ui->tab_2->setLayout(vbox3);
+
+
 }
+
+void Widget::handleMarkerClicked() {
+//    if (this->sender() == markI0) {
+//        if (seriesI0->isVisible())
+//            seriesI0->setVisible(false);
+//        else
+//            seriesI0->setVisible(true);
+//    }
+//    else if (this->sender() == markIMed) {
+
+//    }
+//    else {
+
+
+//    }
+
+
+}
+
 
 void Widget::readRawData() {
     QByteArray rdData = m_serial->readAll();
@@ -280,7 +308,8 @@ void Widget::printCharts( const QVector<QVector<float>> &points, const float &k)
     if (!u.isOpen())  emit signal_outMsgWithData("Unable to open file " + u.fileName());
 
     const int sz = points.size();
-    float newVal = 0;
+    float newVal = 0, newVals=0;
+
     shiftVec.clear();
     zeroCycle = true;
     float min=0, max=0;
@@ -300,20 +329,21 @@ void Widget::printCharts( const QVector<QVector<float>> &points, const float &k)
             i0.write( " " );
         }
         seriesI0->append(i, points.at(i).at(0));
-        newVal += (points.at(i).at(0) - newVal ) * k;
-        seriesKI0->append(i, newVal);
-        newVal = findMedianN_optim(newVal);
+        newVal = findMedianN_optim(points.at(i).at(0));
         seriesMedI0->append(i, newVal);
+        newVals += (newVal - newVals ) * k;
+        seriesKI0->append(i, newVals);
         if ( points.at(i).at(0) < min) min = points.at(i).at(0);
         if ( points.at(i).at(0) > max) max = points.at(i).at(0);
     }
     chartI0->removeAllSeries();
-    seriesI0->setName("до фильтрации");
-    seriesKI0->setName("после первого фильтра");
-    seriesMedI0->setName("медианный");
+    seriesI0->setName(CH1_LEG);
+    seriesMedI0->setName(CH2_LEG);
+    seriesKI0->setName(CH3_LEG);
+
     chartI0->addSeries(seriesI0);
-    chartI0->addSeries(seriesKI0);
     chartI0->addSeries(seriesMedI0);
+    chartI0->addSeries(seriesKI0);
     chartI0->createDefaultAxes();
     chartI0->axes(Qt::Horizontal).first()->setRange(0, sz );
     chartI0->axes(Qt::Vertical).first()->setRange((int)min, (int)max);
@@ -326,27 +356,29 @@ void Widget::printCharts( const QVector<QVector<float>> &points, const float &k)
     seriesMedI1 = new QLineSeries();
     min = points.at(0).at(1);
     max = points.at(0).at(1);
+    newVals = 0;
     newVal = 0;
+
     for (int i=0; i<sz; ++i){
         if (i1.isOpen()) {
             i1.write( QByteArray::number(points.at(i).at(1)));
             i1.write( " " );
         }
          seriesI1->append(i, points.at(i).at(1));
-         newVal += (points.at(i).at(1) - newVal ) * k;
-         seriesKI1->append(i, newVal);
-         newVal = findMedianN_optim(newVal);
+         newVal = findMedianN_optim( points.at(i).at(1));
          seriesMedI1->append(i, newVal);
+         newVals += (newVal - newVals ) * k;
+         seriesKI1->append(i, newVals);
          if ( points.at(i).at(1) < min) min = points.at(i).at(1);
          if ( points.at(i).at(1) > max) max = points.at(i).at(1);
      }
     chartI1->removeAllSeries();
-    seriesI1->setName("до фильтрации");
-    seriesKI1->setName("после первого фильтра");
-    seriesMedI1->setName("медианный");
+    seriesI1->setName(CH1_LEG);
+    seriesMedI1->setName(CH2_LEG);
+    seriesKI1->setName(CH3_LEG);
     chartI1->addSeries(seriesI1);
-    chartI1->addSeries(seriesKI1);
     chartI1->addSeries(seriesMedI1);
+    chartI1->addSeries(seriesKI1);
     chartI1->createDefaultAxes();
     chartI1->axes(Qt::Horizontal).first()->setRange(0, points.size() );
     chartI1->axes(Qt::Vertical).first()->setRange((int)min, (int)max);
@@ -360,26 +392,27 @@ void Widget::printCharts( const QVector<QVector<float>> &points, const float &k)
     min = points.at(0).at(2);
     max = points.at(0).at(2);
     newVal = 0;
+    newVals = 0;
     for (int i=0; i<sz; ++i){
         if (i2.isOpen()) {
             i2.write( QByteArray::number(points.at(i).at(2)));
             i2.write( " " );
         }
         seriesI2->append(i, points.at(i).at(2));
-        newVal += (points.at(i).at(2) - newVal ) * k;
-        seriesKI2->append(i, newVal);
-        newVal = findMedianN_optim(newVal);
+        newVal = findMedianN_optim(points.at(i).at(2));
         seriesMedI2->append(i, newVal);
+        newVals += (newVal - newVals ) * k;
+        seriesKI2->append(i, newVals);
         if ( points.at(i).at(2) < min) min = points.at(i).at(2);
         if ( points.at(i).at(2) > max) max = points.at(i).at(2);
     }
     chartI2->removeAllSeries();
-    seriesI2->setName("до фильтрации");
-    seriesKI2->setName("после первого фильтра");
-    seriesMedI2->setName("медианный");
+    seriesI2->setName(CH1_LEG);
+    seriesKI2->setName(CH3_LEG);
+    seriesMedI2->setName(CH2_LEG);
     chartI2->addSeries(seriesI2);
-    chartI2->addSeries(seriesKI2);
     chartI2->addSeries(seriesMedI2);
+    chartI2->addSeries(seriesKI2);
     chartI2->createDefaultAxes();
     chartI2->axes(Qt::Horizontal).first()->setRange(0, points.size() );
     chartI2->axes(Qt::Vertical).first()->setRange((int)min, (int)max);
@@ -393,26 +426,27 @@ void Widget::printCharts( const QVector<QVector<float>> &points, const float &k)
     min = points.at(0).at(3);
     max = points.at(0).at(3);
     newVal = 0;
+    newVals = 0;
     for (int i=0; i<sz; ++i){
         if (u.isOpen()) {
             u.write( QByteArray::number(points.at(i).at(3)));
             u.write( " " );
         }
         seriesU->append(i, points.at(i).at(3));
-        newVal += (points.at(i).at(3) - newVal ) * k;
-        seriesKU->append(i, newVal);
-        newVal = findMedianN_optim(newVal);
+        newVal = findMedianN_optim(points.at(i).at(3));
         seriesMedU->append(i, newVal);
+        newVals += (newVal - newVals ) * k;
+        seriesKU->append(i, newVals);
         if ( points.at(i).at(3) < min) min = points.at(i).at(3);
         if ( points.at(i).at(3) > max) max = points.at(i).at(3);
     }
     chartU->removeAllSeries();
-    seriesU->setName("до фильтрации");
-    seriesKU->setName("после первого фильтра");
-    seriesMedU->setName("медианный");
+    seriesU->setName(CH1_LEG);
+    seriesKU->setName(CH3_LEG);
+    seriesMedU->setName(CH2_LEG);
     chartU->addSeries(seriesU);
-    chartU->addSeries(seriesKU);
     chartU->addSeries(seriesMedU);
+    chartU->addSeries(seriesKU);
     chartU->createDefaultAxes();
     chartU->axes(Qt::Horizontal).first()->setRange(0, points.size() );
     chartU->axes(Qt::Vertical).first()->setRange((int)min, (int)max);
@@ -421,6 +455,8 @@ void Widget::printCharts( const QVector<QVector<float>> &points, const float &k)
     if (i1.isOpen()) { i1.flush(); i1.close();}
     if (i2.isOpen()) { i2.flush(); i2.close();}
     if (u.isOpen()) { u.flush(); u.close(); }
+
+
 }
 
 // медиана на 3 значений со своим буфером
