@@ -26,8 +26,7 @@ Widget::Widget(QWidget *parent)
     ui->textEdit->setContextMenuPolicy(Qt::ActionsContextMenu);
 
     ui->lineEdit->setValidator( new QIntValidator(1, 1000000000));
-    ui->lineEdit_2->setValidator( new QIntValidator(0, 100));
-    ui->lineEdit_3->setValidator( new QIntValidator(0, 60));
+    ui->lineEdit_3->setValidator( new QIntValidator(0, 1000000000));
 
     connect(actClean, &QAction::triggered, this, &Widget::slot_cleanScreen);
     //"Connect"
@@ -36,6 +35,7 @@ Widget::Widget(QWidget *parent)
     connect(ui->pushButton, &QPushButton::clicked, this, &Widget::slot_manageTest);
     connect(ui->pushButton_3, &QPushButton::clicked, this, &Widget::slot_ParseResult);
     connect(ui->pushButton_4, &QPushButton::clicked, this, &Widget::slot_sendData);
+    connect(ui->pushButton_5, &QPushButton::clicked, this, &Widget::slot_sendCurrLimits);
     connect(this, &Widget::signal_outMsgWithData, this, &Widget::slot_outMsgWithData);
 
     //COM port
@@ -65,12 +65,6 @@ Widget::Widget(QWidget *parent)
     QVBoxLayout *vbox0 = new QVBoxLayout;
     vbox0->addWidget(chartViewI0);
     ui->tab_4->setLayout(vbox0);   
-//    markI0 = chartI0->legend()->markers()[0];
-//    markIMed = chartI0->legend()->markers()[1];
-//    markIk = chartI0->legend()->markers()[2];
-//    connect(markI0, &QLegendMarker::clicked, this, &Widget::handleMarkerClicked);
-//    connect(markIMed, &QLegendMarker::clicked, this, &Widget::handleMarkerClicked);
-//    connect(markIk, &QLegendMarker::clicked, this, &Widget::handleMarkerClicked);
 
 
     chartI1 = new Chart();
@@ -107,19 +101,24 @@ Widget::Widget(QWidget *parent)
 }
 
 void Widget::handleMarkerClicked() {
-//    if (this->sender() == markI0) {
-//        if (seriesI0->isVisible())
-//            seriesI0->setVisible(false);
-//        else
-//            seriesI0->setVisible(true);
-//    }
-//    else if (this->sender() == markIMed) {
-
-//    }
-//    else {
-
-
-//    }
+    if (this->sender() == markI0) {
+        if (seriesI0->isVisible())
+            seriesI0->setVisible(false);
+        else
+            seriesI0->setVisible(true);
+    }
+    else if (this->sender() == markIMed) {
+        if (seriesMedI0->isVisible())
+            seriesMedI0->setVisible(false);
+        else
+            seriesMedI0->setVisible(true);
+    }
+    else {
+        if (seriesKI0->isVisible())
+            seriesKI0->setVisible(false);
+        else
+            seriesKI0->setVisible(true);
+    }
 
 
 }
@@ -132,30 +131,17 @@ void Widget::readRawData() {
 
 
 void Widget::slot_sendData() {
-    if ( ui->lineEdit_2->text().isEmpty() || ui->lineEdit_3->text().isEmpty() ) {
-        emit signal_outMsgWithData("Error - Input range and frequency");
+    if ( ui->lineEdit_3->text().isEmpty() ) {
+        emit signal_outMsgWithData("Error - Input frequency");
         return;
     }
-
-    int r =  ui->lineEdit_2->text().toInt() ;
     int f =  ui->lineEdit_3->text().toInt() ;
-    if (( r < 0) || ( r > 100)) {
-        emit signal_outMsgWithData("Error in range");
-        return;
-    }
-
-
-    if (( f < 0) || ( f > 60)) {
-        emit signal_outMsgWithData("Error in frequency");
-        return;
-    }
-
     msgCmd.wrs.strt = '@';
-    msgCmd.wrs.range = (unsigned char)r;
-    msgCmd.wrs.freq = (unsigned char)f;
+    msgCmd.wrs.freq_msb = (unsigned char)((f & 0x100) >> 8);
+    msgCmd.wrs.freq_lsb = (unsigned char)f;
     msgCmd.wrs.end = '!';
     writeSerialPort(msgCmd);
-    emit signal_outMsgWithData("Send " + QString::number(r, 10) + " range and "  + QString::number(f, 10) +  " frequency");
+    emit signal_outMsgWithData("Send  frequency "  + QString::number(f, 10) +  " Hz");
 }
 
 
@@ -175,6 +161,24 @@ void Widget::slot_saveCharts() {
     emit signal_outMsgWithData("Charts was saved to " + QDir::currentPath() );
 }
 
+
+void Widget::slot_sendCurrLimits() {
+    int fault_curr = 0, max_curr = 0;
+    if (!ui->lineEdit_5->text().isEmpty())
+        fault_curr = ui->lineEdit_5->text().toInt();
+    if (!ui->lineEdit_6->text().isEmpty())
+        max_curr = ui->lineEdit_6->text().toInt();
+    msgCmd.wrs.strt = '@';
+    msgCmd.wrs.freq_msb = (unsigned char)max_curr;
+    msgCmd.wrs.freq_lsb = (unsigned char)fault_curr;
+    msgCmd.wrs.end = '*';
+    writeSerialPort(msgCmd);
+    emit signal_outMsgWithData("Send fault current "  + QString::number(fault_curr, 10) +
+                               " and max operation current " + QString::number(max_curr, 10));
+
+
+
+}
 
 
 void Widget::slot_manageTest() {
@@ -321,6 +325,7 @@ void Widget::printCharts( const QVector<QVector<float>> &points, const float &k)
     seriesI0 = new QLineSeries();
     seriesKI0 = new QLineSeries();
     seriesMedI0 = new QLineSeries();
+
     min = points.at(0).at(0);
     max = points.at(0).at(0);
     for (int i=0; i<sz; ++i){
@@ -340,10 +345,16 @@ void Widget::printCharts( const QVector<QVector<float>> &points, const float &k)
     seriesI0->setName(CH1_LEG);
     seriesMedI0->setName(CH2_LEG);
     seriesKI0->setName(CH3_LEG);
-
     chartI0->addSeries(seriesI0);
     chartI0->addSeries(seriesMedI0);
     chartI0->addSeries(seriesKI0);
+
+    markI0 = chartI0->legend()->markers()[1];
+    markIMed = chartI0->legend()->markers()[1];
+    markIk = chartI0->legend()->markers()[2];
+    connect(markI0, &QLegendMarker::clicked, this, &Widget::handleMarkerClicked);
+    connect(markIMed, &QLegendMarker::clicked, this, &Widget::handleMarkerClicked);
+    connect(markIk, &QLegendMarker::clicked, this, &Widget::handleMarkerClicked);
     chartI0->createDefaultAxes();
     chartI0->axes(Qt::Horizontal).first()->setRange(0, sz );
     chartI0->axes(Qt::Vertical).first()->setRange((int)min, (int)max);
@@ -619,8 +630,8 @@ void Widget::startTest() {
     }
 
     msgCmd.wrs.strt = '@';
-    msgCmd.wrs.range = '!';
-    msgCmd.wrs.freq = '@';
+    msgCmd.wrs.freq_msb = '!';
+    msgCmd.wrs.freq_lsb = '@';
     msgCmd.wrs.end = '$';
     writeSerialPort(msgCmd, 4);
 }
@@ -648,8 +659,8 @@ void Widget::stopTest(bool byBtn) {
          fl.close();
      }
      msgCmd.wrs.strt = '@';
-     msgCmd.wrs.range = '?';
-     msgCmd.wrs.freq = '@';
+     msgCmd.wrs.freq_msb = '?';
+     msgCmd.wrs.freq_lsb = '@';
      msgCmd.wrs.end = '$';
      writeSerialPort(msgCmd, 4);
 }

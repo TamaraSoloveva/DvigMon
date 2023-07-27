@@ -1,13 +1,13 @@
 /********************************************************************************
-** Form generated from reading UI file 'widgetBGaSlS.ui'
+** Form generated from reading UI file 'widgetygvdSX.ui'
 **
 ** Created by: Qt User Interface Compiler version 5.15.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
 
-#ifndef WIDGETBGASLS_H
-#define WIDGETBGASLS_H
+#ifndef WIDGETYGVDSX_H
+#define WIDGETYGVDSX_H
 
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
@@ -47,9 +47,11 @@ public:
     QPushButton *pushButton;
     QSpacerItem *verticalSpacer_4;
     QLabel *label_3;
+    QLineEdit *lineEdit_5;
+    QLabel *label_6;
+    QLineEdit *lineEdit_6;
+    QPushButton *pushButton_5;
     QSpacerItem *verticalSpacer_6;
-    QLineEdit *lineEdit_2;
-    QSpacerItem *verticalSpacer_7;
     QLabel *label_4;
     QSpacerItem *verticalSpacer_10;
     QLineEdit *lineEdit_3;
@@ -60,6 +62,7 @@ public:
     QSpacerItem *verticalSpacer_11;
     QLineEdit *lineEdit_4;
     QPushButton *pushButton_3;
+    QSpacerItem *verticalSpacer_7;
     QSpacerItem *verticalSpacer;
     QWidget *tab_4;
     QWidget *tab_5;
@@ -166,22 +169,39 @@ public:
 
         verticalLayout->addWidget(label_3);
 
-        verticalSpacer_6 = new QSpacerItem(20, 6, QSizePolicy::Minimum, QSizePolicy::Fixed);
+        lineEdit_5 = new QLineEdit(tab);
+        lineEdit_5->setObjectName(QString::fromUtf8("lineEdit_5"));
+        sizePolicy.setHeightForWidth(lineEdit_5->sizePolicy().hasHeightForWidth());
+        lineEdit_5->setSizePolicy(sizePolicy);
+        lineEdit_5->setMinimumSize(QSize(120, 20));
+        lineEdit_5->setMaximumSize(QSize(120, 20));
+
+        verticalLayout->addWidget(lineEdit_5);
+
+        label_6 = new QLabel(tab);
+        label_6->setObjectName(QString::fromUtf8("label_6"));
+
+        verticalLayout->addWidget(label_6);
+
+        lineEdit_6 = new QLineEdit(tab);
+        lineEdit_6->setObjectName(QString::fromUtf8("lineEdit_6"));
+        sizePolicy.setHeightForWidth(lineEdit_6->sizePolicy().hasHeightForWidth());
+        lineEdit_6->setSizePolicy(sizePolicy);
+        lineEdit_6->setMinimumSize(QSize(120, 20));
+        lineEdit_6->setMaximumSize(QSize(120, 20));
+
+        verticalLayout->addWidget(lineEdit_6);
+
+        pushButton_5 = new QPushButton(tab);
+        pushButton_5->setObjectName(QString::fromUtf8("pushButton_5"));
+        pushButton_5->setMinimumSize(QSize(125, 25));
+        pushButton_5->setMaximumSize(QSize(125, 25));
+
+        verticalLayout->addWidget(pushButton_5);
+
+        verticalSpacer_6 = new QSpacerItem(20, 20, QSizePolicy::Minimum, QSizePolicy::Minimum);
 
         verticalLayout->addItem(verticalSpacer_6);
-
-        lineEdit_2 = new QLineEdit(tab);
-        lineEdit_2->setObjectName(QString::fromUtf8("lineEdit_2"));
-        sizePolicy.setHeightForWidth(lineEdit_2->sizePolicy().hasHeightForWidth());
-        lineEdit_2->setSizePolicy(sizePolicy);
-        lineEdit_2->setMinimumSize(QSize(120, 20));
-        lineEdit_2->setMaximumSize(QSize(120, 20));
-
-        verticalLayout->addWidget(lineEdit_2);
-
-        verticalSpacer_7 = new QSpacerItem(20, 6, QSizePolicy::Minimum, QSizePolicy::Fixed);
-
-        verticalLayout->addItem(verticalSpacer_7);
 
         label_4 = new QLabel(tab);
         label_4->setObjectName(QString::fromUtf8("label_4"));
@@ -241,6 +261,10 @@ public:
 
         verticalLayout->addWidget(pushButton_3);
 
+        verticalSpacer_7 = new QSpacerItem(20, 50, QSizePolicy::Minimum, QSizePolicy::Expanding);
+
+        verticalLayout->addItem(verticalSpacer_7);
+
         verticalSpacer = new QSpacerItem(20, 88, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
         verticalLayout->addItem(verticalSpacer);
@@ -283,8 +307,10 @@ public:
         pushButton_2->setText(QCoreApplication::translate("Widget", "Connect", nullptr));
         label_2->setText(QCoreApplication::translate("Widget", "Input test time in sec", nullptr));
         pushButton->setText(QCoreApplication::translate("Widget", "Start test", nullptr));
-        label_3->setText(QCoreApplication::translate("Widget", "Input range (0-100)", nullptr));
-        label_4->setText(QCoreApplication::translate("Widget", "Input freq (0-60)", nullptr));
+        label_3->setText(QCoreApplication::translate("Widget", "Fault current", nullptr));
+        label_6->setText(QCoreApplication::translate("Widget", "Max operation current", nullptr));
+        pushButton_5->setText(QCoreApplication::translate("Widget", "Set", nullptr));
+        label_4->setText(QCoreApplication::translate("Widget", "Input freq", nullptr));
         pushButton_4->setText(QCoreApplication::translate("Widget", "Send", nullptr));
         label_5->setText(QCoreApplication::translate("Widget", "Input k [0 < k <=1]", nullptr));
         pushButton_3->setText(QCoreApplication::translate("Widget", "Get charts", nullptr));
@@ -303,4 +329,4 @@ namespace Ui {
 
 QT_END_NAMESPACE
 
-#endif // WIDGETBGASLS_H
+#endif // WIDGETYGVDSX_H

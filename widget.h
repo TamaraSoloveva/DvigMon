@@ -45,8 +45,8 @@ QT_END_NAMESPACE
 #pragma pack(push, 1)
 typedef struct wr_st_t {
     unsigned char strt;
-    unsigned char range;
-    unsigned char freq;
+    unsigned char freq_msb;
+    unsigned char freq_lsb;
     unsigned char end;
 }wrStruct;
 #pragma pack(pop)
@@ -143,6 +143,7 @@ private slots:
     void slot_ParseResult();
     void slot_saveCharts();
     void slot_sendData();
+    void slot_sendCurrLimits();
 
     //COM port
     void readRawData();
