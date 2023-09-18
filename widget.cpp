@@ -43,7 +43,18 @@ Widget::Widget(QWidget *parent)
     connect( m_serial, &QSerialPort::errorOccurred, this, &Widget::handleError);
 
     QMenu *pmnu   = new QMenu("&Menu");
-    pmnu->addAction("&Save charts", this,  SLOT(slot_saveCharts()), Qt::CTRL + Qt::Key_S);
+    pmnu->addAction("&Save charts", this,  SLOT(slot_saveCharts()), Qt::CTRL + Qt::Key_S);   
+    QAction *act = new QAction("&Use func");
+    act->setCheckable(true);
+    pmnu->addAction(act);
+    useFuncFlag = act->isChecked();
+    connect(act, &QAction::toggled, this, [&](bool bVal){useFuncFlag = bVal;});
+    QAction *act2 = new QAction("&Test mode");
+    act2->setCheckable(true);
+    pmnu->addAction(act2);
+    useTstFlag = act2->isChecked();
+    connect(act2, &QAction::toggled, this, [&](bool bVal){useTstFlag = bVal;  useTstFlag ? emit signal_outMsgWithData("Test mode ON") : emit signal_outMsgWithData("Test mode OFF"); });
+
     QMenuBar *mnuBar;
     mnuBar = new QMenuBar();
     ui->gridLayout->addWidget(mnuBar);
@@ -192,15 +203,22 @@ void Widget::slot_manageTest() {
 
 
 float Widget::countValues( const uint16_t & v ) {
-    return ((float) v * 0.076 - 2500);
+    if (useFuncFlag)
+        return ((float) v * 0.076 - 2500);
+    else
+       return(float)v;
 }
 
 void Widget::slot_ParseResult() {
-    float k = ui->lineEdit_4->text().toFloat();
-    if (k <= 0 || k > 1 ) {
-        emit signal_outMsgWithData("k value - error");
-        return;
+    float k = 0;
+    if (!ui->lineEdit_4->text().isEmpty()) {
+        k = ui->lineEdit_4->text().toFloat();
+        if (k < 0 || k > 1 ) {
+            emit signal_outMsgWithData("k value - error");
+            return;
+        }
     }
+
     QString filename = QFileDialog::getOpenFileName(nullptr, QObject::tr("Open Document"), QDir::currentPath(), QObject::tr("Document files (*.txt);;All files (*.*)"));
     if (!filename.isEmpty()) {
         QFile fl(filename);
@@ -323,52 +341,63 @@ void Widget::printCharts( const QVector<QVector<float>> &points, const float &k)
     if (seriesKI0) delete seriesKI0;
     if (seriesMedI0) delete seriesMedI0;
     seriesI0 = new QLineSeries();
-    seriesKI0 = new QLineSeries();
-    seriesMedI0 = new QLineSeries();
+    if (k) {
+        seriesKI0 = new QLineSeries();
+        seriesMedI0 = new QLineSeries();
+    }
 
     min = points.at(0).at(0);
     max = points.at(0).at(0);
+    float j = 0.5;
     for (int i=0; i<sz; ++i){
         if (i0.isOpen()) {
             i0.write( QByteArray::number(points.at(i).at(0)));
             i0.write( " " );
         }
-        seriesI0->append(i, points.at(i).at(0));
-        newVal = findMedianN_optim(points.at(i).at(0));
-        seriesMedI0->append(i, newVal);
-        newVals += (newVal - newVals ) * k;
-        seriesKI0->append(i, newVals);
+        if (useTstFlag) {
+//              QValueAxis *axisX = new QValueAxis();
+//              axisX->setMin(1);
+//              axisX->setTickCount(500);
+
+            seriesI0->append(j, points.at(i).at(0));
+            j += 0.5;
+        }
+        else
+            seriesI0->append(i, points.at(i).at(0));
+        if (k) {
+            newVal = findMedianN_optim(points.at(i).at(0));
+            seriesMedI0->append(i, newVal);
+            newVals += (newVal - newVals ) * k;
+            seriesKI0->append(i, newVals);
+        }
         if ( points.at(i).at(0) < min) min = points.at(i).at(0);
         if ( points.at(i).at(0) > max) max = points.at(i).at(0);
     }
     chartI0->removeAllSeries();
     seriesI0->setName(CH1_LEG);
-    seriesMedI0->setName(CH2_LEG);
-    seriesKI0->setName(CH3_LEG);
     chartI0->addSeries(seriesI0);
-    chartI0->addSeries(seriesMedI0);
-    chartI0->addSeries(seriesKI0);
-
-    markI0 = chartI0->legend()->markers()[1];
-    markIMed = chartI0->legend()->markers()[1];
-    markIk = chartI0->legend()->markers()[2];
-    connect(markI0, &QLegendMarker::clicked, this, &Widget::handleMarkerClicked);
-    connect(markIMed, &QLegendMarker::clicked, this, &Widget::handleMarkerClicked);
-    connect(markIk, &QLegendMarker::clicked, this, &Widget::handleMarkerClicked);
+    if (k) {
+        seriesMedI0->setName(CH2_LEG);
+        seriesKI0->setName(CH3_LEG);
+        chartI0->addSeries(seriesMedI0);
+        chartI0->addSeries(seriesKI0);
+    }
     chartI0->createDefaultAxes();
-    chartI0->axes(Qt::Horizontal).first()->setRange(0, sz );
-    chartI0->axes(Qt::Vertical).first()->setRange((int)min, (int)max);
  //i1
+    if (useTstFlag)
+        return;
     if (seriesI1) delete seriesI1;
     if (seriesKI1) delete seriesKI1;
     if (seriesMedI1) delete seriesMedI1;
     seriesI1 = new QLineSeries();
-    seriesKI1 = new QLineSeries();
-    seriesMedI1 = new QLineSeries();
+    if (k) {
+        seriesKI1 = new QLineSeries();
+        seriesMedI1 = new QLineSeries();
+        newVals = 0;
+        newVal = 0;
+    }
     min = points.at(0).at(1);
     max = points.at(0).at(1);
-    newVals = 0;
-    newVal = 0;
 
     for (int i=0; i<sz; ++i){
         if (i1.isOpen()) {
@@ -376,98 +405,106 @@ void Widget::printCharts( const QVector<QVector<float>> &points, const float &k)
             i1.write( " " );
         }
          seriesI1->append(i, points.at(i).at(1));
-         newVal = findMedianN_optim( points.at(i).at(1));
-         seriesMedI1->append(i, newVal);
-         newVals += (newVal - newVals ) * k;
-         seriesKI1->append(i, newVals);
+         if (k) {
+            newVal = findMedianN_optim( points.at(i).at(1));
+            seriesMedI1->append(i, newVal);
+            newVals += (newVal - newVals ) * k;
+            seriesKI1->append(i, newVals);
+         }
          if ( points.at(i).at(1) < min) min = points.at(i).at(1);
          if ( points.at(i).at(1) > max) max = points.at(i).at(1);
      }
     chartI1->removeAllSeries();
     seriesI1->setName(CH1_LEG);
-    seriesMedI1->setName(CH2_LEG);
-    seriesKI1->setName(CH3_LEG);
     chartI1->addSeries(seriesI1);
-    chartI1->addSeries(seriesMedI1);
-    chartI1->addSeries(seriesKI1);
+    if (k) {
+        seriesMedI1->setName(CH2_LEG);
+        seriesKI1->setName(CH3_LEG);
+        chartI1->addSeries(seriesMedI1);
+        chartI1->addSeries(seriesKI1);
+    }
     chartI1->createDefaultAxes();
-    chartI1->axes(Qt::Horizontal).first()->setRange(0, points.size() );
-    chartI1->axes(Qt::Vertical).first()->setRange((int)min, (int)max);
 //i2
     if (seriesI2) delete seriesI2;
     if (seriesKI2) delete seriesKI2;
     if (seriesMedI2) delete seriesMedI2;
     seriesI2 = new QLineSeries();
-    seriesKI2= new QLineSeries();
-    seriesMedI2 = new QLineSeries();
+    if(k) {
+        seriesKI2= new QLineSeries();
+        seriesMedI2 = new QLineSeries();
+        newVal = 0;
+        newVals = 0;
+    }
     min = points.at(0).at(2);
     max = points.at(0).at(2);
-    newVal = 0;
-    newVals = 0;
     for (int i=0; i<sz; ++i){
         if (i2.isOpen()) {
             i2.write( QByteArray::number(points.at(i).at(2)));
             i2.write( " " );
         }
         seriesI2->append(i, points.at(i).at(2));
-        newVal = findMedianN_optim(points.at(i).at(2));
-        seriesMedI2->append(i, newVal);
-        newVals += (newVal - newVals ) * k;
-        seriesKI2->append(i, newVals);
+        if (k) {
+            newVal = findMedianN_optim(points.at(i).at(2));
+            seriesMedI2->append(i, newVal);
+            newVals += (newVal - newVals ) * k;
+            seriesKI2->append(i, newVals);
+        }
         if ( points.at(i).at(2) < min) min = points.at(i).at(2);
         if ( points.at(i).at(2) > max) max = points.at(i).at(2);
     }
     chartI2->removeAllSeries();
     seriesI2->setName(CH1_LEG);
-    seriesKI2->setName(CH3_LEG);
-    seriesMedI2->setName(CH2_LEG);
     chartI2->addSeries(seriesI2);
-    chartI2->addSeries(seriesMedI2);
-    chartI2->addSeries(seriesKI2);
+    if (k) {
+        seriesKI2->setName(CH3_LEG);
+        seriesMedI2->setName(CH2_LEG);
+        chartI2->addSeries(seriesMedI2);
+        chartI2->addSeries(seriesKI2);
+    }
     chartI2->createDefaultAxes();
-    chartI2->axes(Qt::Horizontal).first()->setRange(0, points.size() );
-    chartI2->axes(Qt::Vertical).first()->setRange((int)min, (int)max);
 //u
     if (seriesU) delete seriesU;
     if (seriesKU) delete seriesKU;
     if (seriesMedU) delete seriesMedU;
     seriesU = new QLineSeries();
-    seriesKU= new QLineSeries();
-    seriesMedU = new QLineSeries();
+    if (k) {
+        seriesKU = new QLineSeries();
+        seriesMedU = new QLineSeries();
+        newVal = 0;
+        newVals = 0;
+    }
     min = points.at(0).at(3);
     max = points.at(0).at(3);
-    newVal = 0;
-    newVals = 0;
     for (int i=0; i<sz; ++i){
         if (u.isOpen()) {
             u.write( QByteArray::number(points.at(i).at(3)));
             u.write( " " );
         }
         seriesU->append(i, points.at(i).at(3));
-        newVal = findMedianN_optim(points.at(i).at(3));
-        seriesMedU->append(i, newVal);
-        newVals += (newVal - newVals ) * k;
-        seriesKU->append(i, newVals);
+        if (k) {
+            newVal = findMedianN_optim(points.at(i).at(3));
+            seriesMedU->append(i, newVal);
+            newVals += (newVal - newVals ) * k;
+            seriesKU->append(i, newVals);
+        }
         if ( points.at(i).at(3) < min) min = points.at(i).at(3);
         if ( points.at(i).at(3) > max) max = points.at(i).at(3);
     }
     chartU->removeAllSeries();
     seriesU->setName(CH1_LEG);
-    seriesKU->setName(CH3_LEG);
-    seriesMedU->setName(CH2_LEG);
     chartU->addSeries(seriesU);
-    chartU->addSeries(seriesMedU);
-    chartU->addSeries(seriesKU);
+    if (k) {
+        seriesKU->setName(CH3_LEG);
+        seriesMedU->setName(CH2_LEG);
+        chartU->addSeries(seriesMedU);
+        chartU->addSeries(seriesKU);
+    }
     chartU->createDefaultAxes();
-    chartU->axes(Qt::Horizontal).first()->setRange(0, points.size() );
-    chartU->axes(Qt::Vertical).first()->setRange((int)min, (int)max);
 
     if (i0.isOpen()) { i0.flush(); i0.close();}
     if (i1.isOpen()) { i1.flush(); i1.close();}
     if (i2.isOpen()) { i2.flush(); i2.close();}
     if (u.isOpen()) { u.flush(); u.close(); }
-
-
 }
 
 // медиана на 3 значений со своим буфером
@@ -550,9 +587,10 @@ void Widget::slot_stopConnection() {
     ui->comboBox->setEnabled(true);
     ui->pushButton->setEnabled(false);
     closeSerialPort();
-    if (timer) {
+    if (timer || timerReq ) {
         stopTest(true);
         timer = nullptr;
+        timerReq = nullptr;
     }
     if (fl.isOpen()) {
         fl.flush();
@@ -620,7 +658,19 @@ void Widget::startTest() {
     timer->start();
     connect(timer, &QTimer::timeout, this, &Widget::updateTime);
 
-    QString aa = QDir::currentPath()+"\\DATA.txt";
+    QString aa;
+    if (useTstFlag) {
+        timerReq = new QTimer;
+        timerReq->setInterval(500);
+        timerReq->start();
+        connect(timerReq, &QTimer::timeout, this, &Widget::sendReq);
+        aa = QDir::currentPath()+"\\DATA_test.txt";
+
+    }
+    else {
+       aa = QDir::currentPath()+"\\DATA.txt";
+    }
+
     fl.setFileName(aa);
     if (fl.open(QIODevice::WriteOnly)) {
         emit signal_outMsgWithData("log file " + aa + " opened");
@@ -629,11 +679,13 @@ void Widget::startTest() {
         emit signal_outMsgWithData("Unable to open log file ");
     }
 
-    msgCmd.wrs.strt = '@';
-    msgCmd.wrs.freq_msb = '!';
-    msgCmd.wrs.freq_lsb = '@';
-    msgCmd.wrs.end = '$';
-    writeSerialPort(msgCmd, 4);
+    if (!useTstFlag) {
+        msgCmd.wrs.strt = '@';
+        msgCmd.wrs.freq_msb = '!';
+        msgCmd.wrs.freq_lsb = '@';
+        msgCmd.wrs.end = '$';
+        writeSerialPort(msgCmd, 4);
+    }
 }
 
 
@@ -647,6 +699,12 @@ void Widget::stopTest(bool byBtn) {
      timer->stop();
      delete timer;
      timer = nullptr;
+     if (timerReq->isActive()) {
+        timerReq->stop();
+        delete timerReq;
+        timerReq = nullptr;
+     }
+
      ui->pushButton->setText("Start test");
      if (byBtn) {
         emit signal_outMsgWithData(QString("Test interrupted. Work time: %1 seconds").arg(currSec));       
@@ -658,11 +716,22 @@ void Widget::stopTest(bool byBtn) {
          fl.flush();
          fl.close();
      }
-     msgCmd.wrs.strt = '@';
-     msgCmd.wrs.freq_msb = '?';
-     msgCmd.wrs.freq_lsb = '@';
-     msgCmd.wrs.end = '$';
-     writeSerialPort(msgCmd, 4);
+
+     if (!useTstFlag) {
+         msgCmd.wrs.strt = '@';
+         msgCmd.wrs.freq_msb = '?';
+         msgCmd.wrs.freq_lsb = '@';
+         msgCmd.wrs.end = '$';
+         writeSerialPort(msgCmd, 4);
+     }
+}
+
+void Widget::sendReq() {
+    msgCmd.wrs.strt = '@';
+    msgCmd.wrs.freq_msb = '0';
+    msgCmd.wrs.freq_lsb = 0;
+    msgCmd.wrs.end ='+';
+    writeSerialPort(msgCmd, 4);
 }
 
 void Widget::updateTime() {

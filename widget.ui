@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>576</width>
-    <height>579</height>
+    <height>648</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -146,7 +146,7 @@
            <item>
             <widget class="QLabel" name="label_2">
              <property name="text">
-              <string>Input test time in sec</string>
+              <string>Input test time, sec</string>
              </property>
             </widget>
            </item>
@@ -235,7 +235,7 @@
            <item>
             <widget class="QLabel" name="label_3">
              <property name="text">
-              <string>Fault current</string>
+              <string>Fault current, mA</string>
              </property>
             </widget>
            </item>
@@ -328,7 +328,7 @@
            <item>
             <widget class="QLabel" name="label_4">
              <property name="text">
-              <string>Input freq</string>
+              <string>Input freq, Hz</string>
              </property>
             </widget>
            </item>

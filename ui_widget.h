@@ -1,13 +1,13 @@
 /********************************************************************************
-** Form generated from reading UI file 'widgetygvdSX.ui'
+** Form generated from reading UI file 'widgetpQxkxz.ui'
 **
 ** Created by: Qt User Interface Compiler version 5.15.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
 
-#ifndef WIDGETYGVDSX_H
-#define WIDGETYGVDSX_H
+#ifndef WIDGETPQXKXZ_H
+#define WIDGETPQXKXZ_H
 
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
@@ -73,7 +73,7 @@ public:
     {
         if (Widget->objectName().isEmpty())
             Widget->setObjectName(QString::fromUtf8("Widget"));
-        Widget->resize(576, 579);
+        Widget->resize(576, 648);
         gridLayout = new QGridLayout(Widget);
         gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
         tabWidget = new QTabWidget(Widget);
@@ -305,12 +305,12 @@ public:
         Widget->setWindowTitle(QCoreApplication::translate("Widget", "Widget", nullptr));
         label->setText(QCoreApplication::translate("Widget", "COM number", nullptr));
         pushButton_2->setText(QCoreApplication::translate("Widget", "Connect", nullptr));
-        label_2->setText(QCoreApplication::translate("Widget", "Input test time in sec", nullptr));
+        label_2->setText(QCoreApplication::translate("Widget", "Input test time, sec", nullptr));
         pushButton->setText(QCoreApplication::translate("Widget", "Start test", nullptr));
-        label_3->setText(QCoreApplication::translate("Widget", "Fault current", nullptr));
+        label_3->setText(QCoreApplication::translate("Widget", "Fault current, mA", nullptr));
         label_6->setText(QCoreApplication::translate("Widget", "Max operation current", nullptr));
         pushButton_5->setText(QCoreApplication::translate("Widget", "Set", nullptr));
-        label_4->setText(QCoreApplication::translate("Widget", "Input freq", nullptr));
+        label_4->setText(QCoreApplication::translate("Widget", "Input freq, Hz", nullptr));
         pushButton_4->setText(QCoreApplication::translate("Widget", "Send", nullptr));
         label_5->setText(QCoreApplication::translate("Widget", "Input k [0 < k <=1]", nullptr));
         pushButton_3->setText(QCoreApplication::translate("Widget", "Get charts", nullptr));
@@ -329,4 +329,4 @@ namespace Ui {
 
 QT_END_NAMESPACE
 
-#endif // WIDGETYGVDSX_H
+#endif // WIDGETPQXKXZ_H

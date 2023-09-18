@@ -18,6 +18,7 @@
 #include <QFileDialog>
 #include <QIODevice>
 #include <QObject>
+#include <QValueAxis>
 
 #include "chart.h"
 #include "chartview.h"
@@ -72,9 +73,11 @@ private:
     QAction *actClean;
     wrCmdMsg msgCmd;
     QTime time;
+    bool useFuncFlag;
+    bool useTstFlag;
 
     size_t rdSet_num;
-    QTimer *timer;
+    QTimer *timer, *timerReq;
     size_t secNum, currSec;
 
     QMutex mutex;
@@ -148,7 +151,9 @@ private slots:
     //COM port
     void readRawData();
     void handleError(QSerialPort::SerialPortError error);
+    //timers
     void updateTime();
+    void sendReq();
 public slots:
     void handleMarkerClicked();
 signals:
