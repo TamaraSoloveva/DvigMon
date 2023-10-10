@@ -1,7 +1,8 @@
 #include "widget.h"
 #include "ui_widget.h"
 
-
+const int max_dot_number = 15;
+//const int visible_dot_number = 100;
 
 Widget::Widget(QWidget *parent)
     : QWidget(parent)
@@ -19,6 +20,7 @@ Widget::Widget(QWidget *parent)
     seriesMedI2 = nullptr;
     seriesKU = nullptr;
     seriesMedU = nullptr;
+    timerReq = nullptr;
 
     flMenu = new QMenu;
     actClean = new QAction("Clean screen", ui->textEdit);
@@ -54,6 +56,8 @@ Widget::Widget(QWidget *parent)
     pmnu->addAction(act2);
     useTstFlag = act2->isChecked();
     connect(act2, &QAction::toggled, this, [&](bool bVal){useTstFlag = bVal;  useTstFlag ? emit signal_outMsgWithData("Test mode ON") : emit signal_outMsgWithData("Test mode OFF"); });
+    pmnu->addAction("&Manual adjustment", this,  &Widget::slot_manualAdjMode);
+
 
     QMenuBar *mnuBar;
     mnuBar = new QMenuBar();
@@ -108,7 +112,17 @@ Widget::Widget(QWidget *parent)
     vbox3->addWidget(chartViewU);
     ui->tab_2->setLayout(vbox3);
 
+    slot_manualAdjMode();
+}
 
+
+
+/* Функция для получения рандомного числа
+ * в диапазоне от минимального до максимального
+ * */
+int Widget::randomBetween(const int &low, const int &high) {
+    QRandomGenerator generator;
+    return (generator.generate() % ((high + 1) - low) + low);
 }
 
 void Widget::handleMarkerClicked() {
@@ -153,6 +167,70 @@ void Widget::slot_sendData() {
     msgCmd.wrs.end = '!';
     writeSerialPort(msgCmd);
     emit signal_outMsgWithData("Send  frequency "  + QString::number(f, 10) +  " Hz");
+}
+
+
+void Widget::slot_manualAdjMode() {
+    chart = new QChart;
+    chart->setAnimationOptions(QChart::AllAnimations);
+    chart->setTitle("Equaliser");
+
+    sLine = new QLineSeries;
+    sLine->setColor(Qt::blue);
+    sDots = new QScatterSeries;
+    sDots->setMarkerSize(7);
+    sDots->setColor(Qt::blue);
+
+    QVector<QPointF>pVec;
+    for (int x = 0; x <= max_dot_number; x += 3) {
+        sDots->append(QPointF(x, 0.));
+        sLine->append(QPointF(x, 0.));
+        pVec.push_back(QPointF((float)x, 0.));
+    }
+
+//    aaa->append(QPointF(0, 5));
+//    aaa->append(QPointF(3, 4));
+//    aaa->append(QPointF(14, 7));
+    sLine->setColor(Qt::blue);
+
+    chart->addSeries(sDots);
+    chart->addSeries(sLine);
+    chart->legend()->hide();
+
+   for (int i=0; i<3; ++i)
+    qDebug() << sLine->at(i);
+
+    auto chView = new ChartView_move(chart, pVec);
+    ui->gridLayout->addWidget(chView, 0, 0);
+
+    auto axisX = new QValueAxis;
+    auto axisY = new QValueAxis;
+    axisX->setRange(0, max_dot_number);
+    axisX->setLabelFormat("%g");
+    axisX->setTitleText("Frequency");
+    axisY->setRange(0, 100);
+    axisY->setLabelFormat("%g");
+    axisY->setTitleText("Amplitude");
+
+    chart->addAxis(axisX, Qt::AlignBottom);
+    sDots->attachAxis(axisX);
+    chart->addAxis(axisY, Qt::AlignLeft);
+    sDots->attachAxis(axisY);
+    sLine->attachAxis(axisX);
+    sLine->attachAxis(axisY);
+
+    connect(chView, &ChartView_move::repaintChart, this, &Widget::slot_repaintChart);
+
+}
+
+
+void Widget::slot_repaintChart( const QVector<QPointF> &vect ) {
+    sDots->clear();
+    sLine->clear();
+    for (auto x : vect) {
+        *sDots << x;
+        *sLine << x;
+    }
 }
 
 

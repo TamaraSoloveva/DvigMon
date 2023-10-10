@@ -17,12 +17,19 @@ CONFIG += c++11
 SOURCES += \
     chart.cpp \
     chartview.cpp \
+    chartview_move.cpp \
+    getparams.cpp \
     main.cpp \
+    moveitem.cpp \
     widget.cpp
 
 HEADERS += \
     chart.h \
     chartview.h \
+    chartview_move.h \
+    getparams.h \
+    moveitem.h \
+    qchartview.h \
     ui_widget.h \
     widget.h
 

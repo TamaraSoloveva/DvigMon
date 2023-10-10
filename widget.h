@@ -19,9 +19,19 @@
 #include <QIODevice>
 #include <QObject>
 #include <QValueAxis>
+#include <QScatterSeries>
+#include <QSplineSeries>
+
+
+#include <QRandomGenerator>
 
 #include "chart.h"
 #include "chartview.h"
+#include "chartview_move.h"
+#include "moveitem.h"
+#include "getparams.h"
+#include <QVXYModelMapper>
+#include <QAbstractTableModel>
 
 QT_BEGIN_NAMESPACE
 #include <QChart>
@@ -83,6 +93,11 @@ private:
     QMutex mutex;
     QFile fl, fl_tmp;
 
+    //ручной режим
+    QChart *chart;
+    QScatterSeries *sDots;
+    QLineSeries *sLine;
+
     int val=0;
     int tmp=0;
     int cntr=0;
@@ -124,6 +139,10 @@ private:
     int iCnt;
     QSerialPort *m_serial;
 
+    QGraphicsScene *scene;
+
+    QVector<MoveItem *>itVec;
+
     void updateComInfo();
     void sortAlphabetically();
     void startTest();
@@ -135,6 +154,8 @@ private:
     void SaveByteArray( const QByteArray & arr);
     float findMedianN_optim(const float & newVal);
     void printCharts( const QVector<QVector<float>> &points, const float  & k);
+
+    static int randomBetween(const int &low, const int &high);
 
 private slots:    
     void slot_connectToCom();
@@ -148,6 +169,9 @@ private slots:
     void slot_sendData();
     void slot_sendCurrLimits();
 
+    void slot_manualAdjMode();
+
+
     //COM port
     void readRawData();
     void handleError(QSerialPort::SerialPortError error);
@@ -156,6 +180,7 @@ private slots:
     void sendReq();
 public slots:
     void handleMarkerClicked();
+    void slot_repaintChart( const QVector<QPointF> &vect );
 signals:
     void signal_outMsgWithData( QString str );
     //COM port

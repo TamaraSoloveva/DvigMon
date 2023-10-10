@@ -1,13 +1,13 @@
 /********************************************************************************
-** Form generated from reading UI file 'widgetpQxkxz.ui'
+** Form generated from reading UI file 'widgetFGeKhQ.ui'
 **
 ** Created by: Qt User Interface Compiler version 5.15.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
 
-#ifndef WIDGETPQXKXZ_H
-#define WIDGETPQXKXZ_H
+#ifndef WIDGETFGEKHQ_H
+#define WIDGETFGEKHQ_H
 
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
@@ -28,7 +28,7 @@ QT_BEGIN_NAMESPACE
 class Ui_Widget
 {
 public:
-    QGridLayout *gridLayout;
+    QGridLayout *gridLayout_3;
     QTabWidget *tabWidget;
     QWidget *tab;
     QGridLayout *gridLayout_2;
@@ -68,16 +68,25 @@ public:
     QWidget *tab_5;
     QWidget *tab_3;
     QWidget *tab_2;
+    QWidget *tab_6;
+    QGridLayout *gridLayout_4;
+    QGridLayout *gridLayout;
+    QSpacerItem *verticalSpacer_12;
+    QHBoxLayout *horizontalLayout_2;
+    QPushButton *pushButton_6;
+    QSpacerItem *horizontalSpacer_2;
 
     void setupUi(QWidget *Widget)
     {
         if (Widget->objectName().isEmpty())
             Widget->setObjectName(QString::fromUtf8("Widget"));
-        Widget->resize(576, 648);
-        gridLayout = new QGridLayout(Widget);
-        gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
+        Widget->resize(593, 578);
+        Widget->setMinimumSize(QSize(561, 578));
+        gridLayout_3 = new QGridLayout(Widget);
+        gridLayout_3->setObjectName(QString::fromUtf8("gridLayout_3"));
         tabWidget = new QTabWidget(Widget);
         tabWidget->setObjectName(QString::fromUtf8("tabWidget"));
+        tabWidget->setMinimumSize(QSize(561, 555));
         tab = new QWidget();
         tab->setObjectName(QString::fromUtf8("tab"));
         gridLayout_2 = new QGridLayout(tab);
@@ -288,13 +297,41 @@ public:
         tab_2 = new QWidget();
         tab_2->setObjectName(QString::fromUtf8("tab_2"));
         tabWidget->addTab(tab_2, QString());
+        tab_6 = new QWidget();
+        tab_6->setObjectName(QString::fromUtf8("tab_6"));
+        gridLayout_4 = new QGridLayout(tab_6);
+        gridLayout_4->setObjectName(QString::fromUtf8("gridLayout_4"));
+        gridLayout = new QGridLayout();
+        gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
+        verticalSpacer_12 = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
-        gridLayout->addWidget(tabWidget, 0, 0, 1, 1);
+        gridLayout->addItem(verticalSpacer_12, 0, 0, 1, 1);
+
+        horizontalLayout_2 = new QHBoxLayout();
+        horizontalLayout_2->setObjectName(QString::fromUtf8("horizontalLayout_2"));
+        pushButton_6 = new QPushButton(tab_6);
+        pushButton_6->setObjectName(QString::fromUtf8("pushButton_6"));
+
+        horizontalLayout_2->addWidget(pushButton_6);
+
+        horizontalSpacer_2 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        horizontalLayout_2->addItem(horizontalSpacer_2);
+
+
+        gridLayout->addLayout(horizontalLayout_2, 1, 0, 1, 1);
+
+
+        gridLayout_4->addLayout(gridLayout, 0, 0, 1, 1);
+
+        tabWidget->addTab(tab_6, QString());
+
+        gridLayout_3->addWidget(tabWidget, 0, 0, 1, 1);
 
 
         retranslateUi(Widget);
 
-        tabWidget->setCurrentIndex(0);
+        tabWidget->setCurrentIndex(5);
 
 
         QMetaObject::connectSlotsByName(Widget);
@@ -319,6 +356,8 @@ public:
         tabWidget->setTabText(tabWidget->indexOf(tab_5), QCoreApplication::translate("Widget", "I1", nullptr));
         tabWidget->setTabText(tabWidget->indexOf(tab_3), QCoreApplication::translate("Widget", "I2", nullptr));
         tabWidget->setTabText(tabWidget->indexOf(tab_2), QCoreApplication::translate("Widget", "U", nullptr));
+        pushButton_6->setText(QCoreApplication::translate("Widget", "PushButton", nullptr));
+        tabWidget->setTabText(tabWidget->indexOf(tab_6), QCoreApplication::translate("Widget", "Equalize ", nullptr));
     } // retranslateUi
 
 };
@@ -329,4 +368,4 @@ namespace Ui {
 
 QT_END_NAMESPACE
 
-#endif // WIDGETPQXKXZ_H
+#endif // WIDGETFGEKHQ_H
