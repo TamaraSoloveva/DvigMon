@@ -31,8 +31,8 @@
 #include <QtGui/QMouseEvent>
 #include <QDebug>
 
-ChartView_move::ChartView_move(QChart *chart, QVector<QPointF> pV, QWidget *parent) :
-    QChartView(chart, parent), ind(0), m_isTouching(false), pV(pV) {
+ChartView_move::ChartView_move(QChart *chart, QVector<QPointF> pV, bool bShow, QWidget *parent) :
+    QChartView(chart, parent), b_showCoordinates(bShow), ind(0), m_isTouching(false), pV(pV) {
  //   setRubberBand(QChartView::RectangleRubberBand);
 }
 
@@ -57,38 +57,55 @@ void ChartView_move::mousePressEvent(QMouseEvent *event) {
         auto const scenePos = mapToScene(QPoint(static_cast<int>(widgetPos.x()), static_cast<int>(widgetPos.y())));
         auto const chartItemPos = chart()->mapFromScene(scenePos);
         auto const valueGivenSeries = chart()->mapToValue(chartItemPos);
-
-        int valX = qRound(valueGivenSeries.x());
-        int valY = qRound(valueGivenSeries.y());
-        ind = findPointInVector(valX);
-        qDebug() << valueGivenSeries << " " << valX << " " << valY << " " << ind;
-        for (auto p : qAsConst(pV))
-            qDebug() << p;
-
-
+        ind = findPointInVector(valueGivenSeries.x(), valueGivenSeries.y());
+        if (ind == -1)
+             m_isTouching = false;
         return;
     }
     QChartView::mousePressEvent(event);
 }
 
 
-
-int ChartView_move::findPointInVector(int x, int y) {
+int ChartView_move::findPointInVector(float x, float y) {
     int ret_ind = 0;
-    float xMin = x - 1;
-    float xMax = x + 1;
+    bool pointDetected = false;
+
+    qDebug() << "++++++++++++++++++++++++++++++\n" << x << " " << y;
     for ( auto el : qAsConst(pV)) {
-        if (( el.x() == x  ) || ( el.x() == xMin) || (el.x() == xMax)) {
-            break;
+        qDebug() << el.x() << " " << el.y();
+        if (( el.x() - 2) <= x && x < (el.x() + 2) ) {
+            if (( el.y() - 1) <= y && y < (el.y() + 1)) {
+                pointDetected = true;
+                break;
+            }
+            else {
+                ret_ind++;
+                continue;
+            }
         }
+ //      qDebug() << el.x() - 0.2 << " " << el.x() + 0.2;
+//       qDebug() << el.y() - 0.2 << " " << el.y() + 0.2;
         ret_ind++;
     }
+    if (!pointDetected)
+        ret_ind = -1;
+
+    qDebug() << "ret_ind " << ret_ind;
+
     return ret_ind;
 }
 
 void ChartView_move::mouseMoveEvent(QMouseEvent *event) {
     if (m_isTouching)
         return;
+    else {
+        auto const widgetPos = event->localPos();
+        auto const scenePos = mapToScene(QPoint(static_cast<int>(widgetPos.x()), static_cast<int>(widgetPos.y())));
+        auto const chartItemPos = chart()->mapFromScene(scenePos);
+        auto const valueGivenSeries = chart()->mapToValue(chartItemPos);
+        if (b_showCoordinates)
+            emit showCoorinates(valueGivenSeries);
+    }
     QChartView::mouseMoveEvent(event);
 }
 
@@ -98,17 +115,18 @@ void ChartView_move::mouseMoveEvent(QMouseEvent *event) {
 void ChartView_move::mouseReleaseEvent(QMouseEvent *event) {
     if (m_isTouching) {
         m_isTouching = false;
+        if (ind == -1) return;
         auto const widgetPos = event->localPos();
         auto const scenePos = mapToScene(QPoint(static_cast<int>(widgetPos.x()), static_cast<int>(widgetPos.y())));
         auto const chartItemPos = chart()->mapFromScene(scenePos);
         auto const valueGivenSeries = chart()->mapToValue(chartItemPos);
-        qDebug() << valueGivenSeries << " " << ind;
-        qDebug() << "point to change" << pV.at(ind);
+   //     qDebug() << valueGivenSeries;
+ //       qDebug() << "point to change" << pV.at(ind);
         pV.insert(ind, QPointF(valueGivenSeries));
         pV.remove(ind+1);
 
-        for (auto p : qAsConst(pV))
-            qDebug() << p;
+//        for (auto p : qAsConst(pV))
+//            qDebug() << p;
 
        emit repaintChart( pV );
 
@@ -123,36 +141,3 @@ void ChartView_move::mouseReleaseEvent(QMouseEvent *event) {
 }
 
 
-//void ChartView_move::keyPressEvent(QKeyEvent *event) {
-//    switch (event->key()) {
-//    case Qt::Key_Plus:
-//        chart()->zoomIn();
-//        break;
-//    case Qt::Key_Minus:
-//        chart()->zoomOut();
-//        break;
-//    case Qt::Key_Left:
-//        chart()->scroll(-10, 0);
-//        break;
-//    case Qt::Key_Right:
-//        chart()->scroll(10, 0);
-//        break;
-//    case Qt::Key_Up:
-//        chart()->scroll(0, 10);
-//        break;
-//    case Qt::Key_Down:
-//        chart()->scroll(0, -10);
-//        break;
-//    default:
-//        QGraphicsView::keyPressEvent(event);
-//        break;
-//    }
-//}
-
-//void ChartView_move::wheelEvent(QWheelEvent *event) {
-////    qreal factor = event->angleDelta().y() > 0 ? 2.0 : 0.5;
-////    chart()->zoom(factor);
-////    event->accept();
-////    QChartView::wheelEvent(event);
-
-//}

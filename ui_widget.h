@@ -1,13 +1,13 @@
 /********************************************************************************
-** Form generated from reading UI file 'widgetFGeKhQ.ui'
+** Form generated from reading UI file 'widgetGSvFuf.ui'
 **
 ** Created by: Qt User Interface Compiler version 5.15.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
 
-#ifndef WIDGETFGEKHQ_H
-#define WIDGETFGEKHQ_H
+#ifndef WIDGETGSVFUF_H
+#define WIDGETGSVFUF_H
 
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
@@ -74,6 +74,9 @@ public:
     QSpacerItem *verticalSpacer_12;
     QHBoxLayout *horizontalLayout_2;
     QPushButton *pushButton_6;
+    QPushButton *pushButton_7;
+    QSpacerItem *horizontalSpacer_3;
+    QLabel *label_7;
     QSpacerItem *horizontalSpacer_2;
 
     void setupUi(QWidget *Widget)
@@ -314,6 +317,22 @@ public:
 
         horizontalLayout_2->addWidget(pushButton_6);
 
+        pushButton_7 = new QPushButton(tab_6);
+        pushButton_7->setObjectName(QString::fromUtf8("pushButton_7"));
+
+        horizontalLayout_2->addWidget(pushButton_7);
+
+        horizontalSpacer_3 = new QSpacerItem(40, 20, QSizePolicy::Fixed, QSizePolicy::Minimum);
+
+        horizontalLayout_2->addItem(horizontalSpacer_3);
+
+        label_7 = new QLabel(tab_6);
+        label_7->setObjectName(QString::fromUtf8("label_7"));
+        label_7->setEnabled(true);
+        label_7->setMinimumSize(QSize(150, 0));
+
+        horizontalLayout_2->addWidget(label_7);
+
         horizontalSpacer_2 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
         horizontalLayout_2->addItem(horizontalSpacer_2);
@@ -356,7 +375,9 @@ public:
         tabWidget->setTabText(tabWidget->indexOf(tab_5), QCoreApplication::translate("Widget", "I1", nullptr));
         tabWidget->setTabText(tabWidget->indexOf(tab_3), QCoreApplication::translate("Widget", "I2", nullptr));
         tabWidget->setTabText(tabWidget->indexOf(tab_2), QCoreApplication::translate("Widget", "U", nullptr));
-        pushButton_6->setText(QCoreApplication::translate("Widget", "PushButton", nullptr));
+        pushButton_6->setText(QCoreApplication::translate("Widget", "Send values", nullptr));
+        pushButton_7->setText(QCoreApplication::translate("Widget", "Reset", nullptr));
+        label_7->setText(QCoreApplication::translate("Widget", "TextLabel", nullptr));
         tabWidget->setTabText(tabWidget->indexOf(tab_6), QCoreApplication::translate("Widget", "Equalize ", nullptr));
     } // retranslateUi
 
@@ -368,4 +389,4 @@ namespace Ui {
 
 QT_END_NAMESPACE
 
-#endif // WIDGETFGEKHQ_H
+#endif // WIDGETGSVFUF_H

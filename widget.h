@@ -85,6 +85,8 @@ private:
     QTime time;
     bool useFuncFlag;
     bool useTstFlag;
+    QAction *act3;
+
 
     size_t rdSet_num;
     QTimer *timer, *timerReq;
@@ -104,6 +106,7 @@ private:
     int numInArr=0;
     bool zeroCycle;
     QVector<float>shiftVec;
+    QVector<QPointF>pVec;
     QLegendMarker *markI0, *markIMed, *markIk;
 
     QVector <QByteArray> vecRawData;
@@ -170,6 +173,7 @@ private slots:
     void slot_sendCurrLimits();
 
     void slot_manualAdjMode();
+    float getChartValue(QPointF p1, QPointF p2, float x);
 
 
     //COM port
@@ -181,8 +185,11 @@ private slots:
 public slots:
     void handleMarkerClicked();
     void slot_repaintChart( const QVector<QPointF> &vect );
+    void resetChart();
+    void countAmpl();
 signals:
     void signal_outMsgWithData( QString str );
+    void signal_resetVec(const QVector<QPointF> &vect);
     //COM port
     void signalSaveByteArray(QByteArray tmp);
 

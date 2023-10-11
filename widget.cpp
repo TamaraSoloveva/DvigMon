@@ -1,8 +1,8 @@
 #include "widget.h"
 #include "ui_widget.h"
 
-const int max_dot_number = 15;
-//const int visible_dot_number = 100;
+const int max_dot_number = 300;
+const int visible_dot_number = 30;
 
 Widget::Widget(QWidget *parent)
     : QWidget(parent)
@@ -10,6 +10,7 @@ Widget::Widget(QWidget *parent)
         seriesI1(nullptr), seriesI2(nullptr), seriesU(nullptr),  iCnt(0),  m_serial(new QSerialPort(this))
 {
     ui->setupUi(this);
+    ui->label_7->text().clear();
     updateComInfo();
 
     seriesKI0 = nullptr;
@@ -56,8 +57,10 @@ Widget::Widget(QWidget *parent)
     pmnu->addAction(act2);
     useTstFlag = act2->isChecked();
     connect(act2, &QAction::toggled, this, [&](bool bVal){useTstFlag = bVal;  useTstFlag ? emit signal_outMsgWithData("Test mode ON") : emit signal_outMsgWithData("Test mode OFF"); });
-    pmnu->addAction("&Manual adjustment", this,  &Widget::slot_manualAdjMode);
-
+    act3 = new QAction("&Show coordinates");
+    act3->setCheckable(true);
+    act3->setChecked(true);
+    pmnu->addAction(act3);
 
     QMenuBar *mnuBar;
     mnuBar = new QMenuBar();
@@ -178,39 +181,34 @@ void Widget::slot_manualAdjMode() {
     sLine = new QLineSeries;
     sLine->setColor(Qt::blue);
     sDots = new QScatterSeries;
-    sDots->setMarkerSize(7);
+    sDots->setMarkerSize(8);
     sDots->setColor(Qt::blue);
 
-    QVector<QPointF>pVec;
-    for (int x = 0; x <= max_dot_number; x += 3) {
-        sDots->append(QPointF(x, 0.));
-        sLine->append(QPointF(x, 0.));
-        pVec.push_back(QPointF((float)x, 0.));
+    pVec.clear();
+    for (int x = 0, y = 0; x <= max_dot_number; x+= max_dot_number/visible_dot_number , y+=3 ) {
+        sDots->append(QPointF(x, y));
+        sLine->append(QPointF(x, y));
+        pVec.push_back(QPointF((float)x, y));
     }
-
-//    aaa->append(QPointF(0, 5));
-//    aaa->append(QPointF(3, 4));
-//    aaa->append(QPointF(14, 7));
-    sLine->setColor(Qt::blue);
 
     chart->addSeries(sDots);
     chart->addSeries(sLine);
     chart->legend()->hide();
 
-   for (int i=0; i<3; ++i)
-    qDebug() << sLine->at(i);
-
-    auto chView = new ChartView_move(chart, pVec);
+    auto chView = new ChartView_move(chart, pVec, act3->isChecked());
+    connect(act3, &QAction::toggled, chView, [&](bool ch) { chView->b_showCoordinates = ch; });
+    connect(chView, &ChartView_move::showCoorinates, this,
+            [&](QPointF point){ ui->label_7->setText(QString::number(point.x()) + ", " + QString::number(point.y()));});
     ui->gridLayout->addWidget(chView, 0, 0);
 
     auto axisX = new QValueAxis;
     auto axisY = new QValueAxis;
     axisX->setRange(0, max_dot_number);
     axisX->setLabelFormat("%g");
-    axisX->setTitleText("Frequency");
+    axisX->setTitleText("Frequency, Hz");
     axisY->setRange(0, 100);
     axisY->setLabelFormat("%g");
-    axisY->setTitleText("Amplitude");
+    axisY->setTitleText("Amplitude, %");
 
     chart->addAxis(axisX, Qt::AlignBottom);
     sDots->attachAxis(axisX);
@@ -220,6 +218,48 @@ void Widget::slot_manualAdjMode() {
     sLine->attachAxis(axisY);
 
     connect(chView, &ChartView_move::repaintChart, this, &Widget::slot_repaintChart);
+    connect(ui->pushButton_7, &QPushButton::clicked, this, &Widget::resetChart);
+    //connect(ui->pushButton_6, &QPushButton::clicked, this, &Widget::countAmpl);
+    connect(ui->pushButton_6, &QPushButton::clicked, this, &Widget::countAmpl);
+    connect(this, &Widget::signal_resetVec, chView, &ChartView_move::resetVector);
+
+}
+
+void Widget::countAmpl() {
+    QVector<float>amplVec;
+    float amp = 0.;
+    float step = max_dot_number / visible_dot_number;
+    for (int x = 0; x < max_dot_number; x += step) {
+        for (int i = 0; i < pVec.size(); ++i) {
+            if ((x >= pVec.at(i).x()) && (x < pVec.at(i+1).x()) ) {
+                amp = getChartValue(pVec.at(i), pVec.at(i+1), x);
+                amplVec.push_back(amp);
+
+
+             }
+            else {
+                continue;
+            }
+        }
+    }
+}
+
+void Widget::resetChart( ) {
+    sDots->clear();
+    sLine->clear();
+    pVec.clear();
+    for (int x = 0, y = 0; x <= max_dot_number; x+= max_dot_number/visible_dot_number , y+=3 ) {
+        sDots->append(QPointF(x, y));
+        sLine->append(QPointF(x, y));
+        pVec.push_back(QPointF((float)x, y));
+    }
+    emit signal_resetVec(pVec);
+
+}
+
+float Widget::getChartValue(QPointF p1, QPointF p2, float x) {
+    float y = p1.x() + ((x - p1.x())*(p2.y() - p1.y())/(p2.x() - p1.x()));
+    return y;
 
 }
 

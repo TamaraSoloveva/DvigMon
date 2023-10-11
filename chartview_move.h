@@ -8,7 +8,8 @@ QT_CHARTS_USE_NAMESPACE
 class ChartView_move : public QChartView {
     Q_OBJECT
 public:
-    ChartView_move(QChart *chart, QVector<QPointF> pV, QWidget *parent = 0);
+    ChartView_move(QChart *chart, QVector<QPointF> pV, bool bShow, QWidget *parent = 0);
+    bool b_showCoordinates;
 
 protected:
     bool viewportEvent(QEvent *event) override;
@@ -19,11 +20,14 @@ protected:
 //    void wheelEvent(QWheelEvent *event) override;
 
 private:
-    int findPointInVector(int x, int y = 0);
+    int findPointInVector(float x, float y);
     int ind;
     bool m_isTouching;
-//  QPoint  firstPos, lastPos;
+
     QVector<QPointF> pV;
 signals:
     void repaintChart( const QVector<QPointF> & pV);
+    void showCoorinates(const QPointF &point);
+public slots:
+    void resetVector(const QVector<QPointF> & vInput) {pV.clear(); pV = vInput; }
 };
