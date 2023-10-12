@@ -31,9 +31,9 @@
 #include <QtGui/QMouseEvent>
 #include <QDebug>
 
-ChartView_move::ChartView_move(QChart *chart, QVector<QPointF> pV, bool bShow, QWidget *parent) :
-    QChartView(chart, parent), b_showCoordinates(bShow), ind(0), m_isTouching(false), pV(pV) {
- //   setRubberBand(QChartView::RectangleRubberBand);
+ChartView_move::ChartView_move(QChart *chart, QVector<QPointF> pV, QWidget *parent) :
+    QChartView(chart, parent), ind(0), m_isTouching(false), pV(pV) {
+
 }
 
 bool ChartView_move::viewportEvent(QEvent *event) {
@@ -97,8 +97,7 @@ void ChartView_move::mouseMoveEvent(QMouseEvent *event) {
         auto const scenePos = mapToScene(QPoint(static_cast<int>(widgetPos.x()), static_cast<int>(widgetPos.y())));
         auto const chartItemPos = chart()->mapFromScene(scenePos);
         auto const valueGivenSeries = chart()->mapToValue(chartItemPos);
-        if (b_showCoordinates)
-            emit showCoorinates(valueGivenSeries);
+        emit showCoorinates(valueGivenSeries);
     }
     QChartView::mouseMoveEvent(event);
 }

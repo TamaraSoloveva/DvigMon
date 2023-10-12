@@ -10,7 +10,6 @@ Widget::Widget(QWidget *parent)
         seriesI1(nullptr), seriesI2(nullptr), seriesU(nullptr),  iCnt(0),  m_serial(new QSerialPort(this))
 {
     ui->setupUi(this);
-    ui->label_7->text().clear();
     updateComInfo();
 
     seriesKI0 = nullptr;
@@ -192,10 +191,10 @@ void Widget::slot_manualAdjMode() {
     chart->addSeries(sLine);
     chart->legend()->hide();
 
-    chView = new ChartView_move(chart, pVec, act3->isChecked());
-    connect(act3, &QAction::toggled, chView, [&](bool ch) { chView->b_showCoordinates = ch; });
+    chView = new ChartView_move(chart, pVec);
+    connect(act3, &QAction::toggled, chView, [&](bool ch) { ui->label_7->setVisible(ch); });
     connect(chView, &ChartView_move::showCoorinates, this,
-            [&](QPointF point){ ui->label_7->setText(QString::number(point.x()) + ", " + QString::number(point.y()));});
+            [&](QPointF point){ if (ui->label_7->isVisible()) ui->label_7->setText(QString::number(point.x()) + ", " + QString::number(point.y()));});
     ui->gridLayout->addWidget(chView, 0, 0);
 
     auto axisX = new QValueAxis;
@@ -216,20 +215,16 @@ void Widget::slot_manualAdjMode() {
 
     connect(chView, &ChartView_move::repaintChart, this, &Widget::slot_repaintChart);
     connect(ui->pushButton_7, &QPushButton::clicked, this, &Widget::resetChart);
-    connect(ui->pushButton_6, &QPushButton::clicked, this, &Widget::countAmpl);
+    connect(ui->pushButton_6, &QPushButton::clicked, this, &Widget::writeVecToCom);
     connect(this, &Widget::signal_resetVec, chView, &ChartView_move::resetVector);
     connect(ui->pushButton_8, &QPushButton::clicked, this, &Widget::openChart);
     connect(ui->pushButton_9, &QPushButton::clicked, this, &Widget::saveChart);
-
-
 }
 
-void Widget::countAmpl() {
-    pVec = chView->actualizeVector();
-    amplVec.clear();
+QVector<QPointF> Widget::countAmpl() {
+    QVector<QPointF> amplVec;
     float amp = 0.;
-    float step = max_dot_number / 100;
-    for (int x = 0; x <= max_dot_number; x += step) {
+    for (int x = 0; x <= max_dot_number; ++x ) {
         for (int i = 0; i < pVec.size()-1; ++i) {
             if ((x >= pVec.at(i).x()) && (x < pVec.at(i+1).x()) ) {
                 amp = getChartValue(pVec.at(i), pVec.at(i+1), static_cast<float>(x));
@@ -241,22 +236,21 @@ void Widget::countAmpl() {
            }
         }
     }
-    writeVecToCom(amplVec);
+    return amplVec;
 }
 
-void Widget::writeVecToCom( const QVector<QPointF> &ampl ) {
-    if (ampl.size() != 100)  {
-        ui->label_7->setText("Point number is not equal 101");
-    }
+void Widget::writeVecToCom( ) {
+    const QVector<QPointF> &ampl = countAmpl();
+    //НЕ ЗАБУДЬ ИСПРАВИТЬ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     if (m_serial->isOpen()) {
         ui->label_7->setText("No connection with COM port");
     }
     else {
-        QFile fl_aTmp("amplitudeTMP.txt");
+        QFile fl_aTmp("send.txt");
         if (!fl_aTmp.open(QIODevice::WriteOnly) ) {
            QMessageBox::critical(nullptr, "Error", "Unable to open file", QMessageBox::Ok);
         }
-        wrFlCmdMsg msgCmd;
+        wrCmdMsg msgCmd;
         wrNum = 0;
         QVector<QPointF>::const_iterator it;
         for ( it = ampl.begin(); it < ampl.end()-2; ++it ) {
@@ -264,12 +258,12 @@ void Widget::writeVecToCom( const QVector<QPointF> &ampl ) {
                 msgCmd.wrs.strt = '%';
             else
                 msgCmd.wrs.strt = '&';
-            msgCmd.wrs.val1 = wrNum;
-            msgCmd.wrs.val2 = it->y();
+            msgCmd.wrs.freq_msb = wrNum;
+            msgCmd.wrs.freq_lsb = qRound(it->y());
             it++;
-            msgCmd.wrs.val3 = it->y();
+            msgCmd.wrs.end = qRound(it->y());
             wrNum += 2;
-            QString sss = QString("%1 %2 %3\n").arg(msgCmd.wrs.val1).arg(msgCmd.wrs.val2).arg(msgCmd.wrs.val3);
+            QString sss = QString("#%1\n%2\n%3\n").arg(msgCmd.wrs.freq_msb).arg(msgCmd.wrs.freq_lsb).arg(msgCmd.wrs.end);
             fl_aTmp.write(sss.toUtf8());
         }
           // writeSerialPort(msgCmd);
@@ -311,6 +305,7 @@ void Widget::slot_repaintChart( const QVector<QPointF> &vect ) {
         *sDots << x;
         *sLine << x;
     }
+    pVec = vect;
 }
 
 
@@ -978,7 +973,7 @@ void Widget::openChart() {
 
 
 void Widget::saveChart() {
-    countAmpl();
+    QVector<QPointF> amplVec = countAmpl();
     QString filename = QFileDialog::getSaveFileName(this, QObject::tr("Save chart"), QDir::currentPath(), QObject::tr("Coordinates files (*.txt);;All files (*.*)"));
     if (filename.isEmpty()) return;
     QFile flAmpl(filename);
@@ -998,4 +993,14 @@ void Widget::saveChart() {
     }
     flAmpl.flush();
     flAmpl.close();
+    //CHECK
+    QScatterSeries *www = new QScatterSeries;
+    www->setMarkerSize(5);
+    www->setColor(Qt::red);
+    for (auto x : amplVec) {
+        www->append(QPoint(x.x(), x.y()));
+
+    }
+    chart->addSeries(www);
+
 }

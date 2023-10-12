@@ -21,6 +21,7 @@
 #include <QValueAxis>
 #include <QScatterSeries>
 #include <QSplineSeries>
+#include <QSharedPointer>
 
 
 #include <QRandomGenerator>
@@ -172,7 +173,8 @@ private:
     void SaveByteArray( const QByteArray & arr);
     float findMedianN_optim(const float & newVal);
     void printCharts( const QVector<QVector<float>> &points, const float  & k);
-    void writeVecToCom(const QVector<QPointF> &a);
+    QVector<QPointF> countAmpl();
+
 
     static int randomBetween(const int &low, const int &high);
 
@@ -190,7 +192,7 @@ private slots:
 
     void slot_manualAdjMode();
     float getChartValue(const QPointF &p1, const QPointF &p2, const float &x);
-
+    void writeVecToCom();
     void openChart();
     void saveChart();
 
@@ -205,7 +207,7 @@ public slots:
     void handleMarkerClicked();
     void slot_repaintChart( const QVector<QPointF> &vect );
     void resetChart();
-    void countAmpl();
+
 signals:
     void signal_outMsgWithData( QString str );
     void signal_resetVec(const QVector<QPointF> &vect);

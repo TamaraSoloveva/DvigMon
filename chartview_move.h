@@ -1,16 +1,14 @@
 #include <QtCharts/QChartView>
 #include <QtWidgets/QRubberBand>
 #include <QWheelEvent>
-
 QT_CHARTS_USE_NAMESPACE
 
 
 class ChartView_move : public QChartView {
     Q_OBJECT
 public:
-    ChartView_move(QChart *chart, QVector<QPointF> pV, bool bShow, QWidget *parent = 0);
-    bool b_showCoordinates;
-    QVector<QPointF> actualizeVector() {return pV;}
+    ChartView_move(QChart *chart, QVector<QPointF> pV, QWidget *parent = 0);
+  //  QVector<QPointF> actualizeVector() {return pV;}
 
 protected:
     bool viewportEvent(QEvent *event) override;
