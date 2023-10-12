@@ -60,12 +60,24 @@ typedef struct wr_st_t {
     unsigned char freq_lsb;
     unsigned char end;
 }wrStruct;
+
+typedef struct wr_float_t {
+    float strt;
+    float val1;
+    float val2;
+    float val3;
+}wrFlStruct;
 #pragma pack(pop)
 
 typedef union snd_pckg_t {
     unsigned char msgMas[sizeof(wrStruct)];
     wrStruct wrs;
 }wrCmdMsg;
+
+typedef union sndFl_pckg_t {
+    float msgMas[sizeof(wrFlStruct)];
+    wrFlStruct wrs;
+}wrFlCmdMsg;
 
 QT_CHARTS_USE_NAMESPACE
 
@@ -86,6 +98,7 @@ private:
     bool useFuncFlag;
     bool useTstFlag;
     QAction *act3;
+    ChartView_move *chView;
 
 
     size_t rdSet_num;
@@ -107,6 +120,7 @@ private:
     bool zeroCycle;
     QVector<float>shiftVec;
     QVector<QPointF>pVec;
+    QVector<QPointF>amplVec;
     QLegendMarker *markI0, *markIMed, *markIk;
 
     QVector <QByteArray> vecRawData;
@@ -140,6 +154,7 @@ private:
     QLineSeries *seriesMedU;
 
     int iCnt;
+    float wrNum;
     QSerialPort *m_serial;
 
     QGraphicsScene *scene;
@@ -157,6 +172,7 @@ private:
     void SaveByteArray( const QByteArray & arr);
     float findMedianN_optim(const float & newVal);
     void printCharts( const QVector<QVector<float>> &points, const float  & k);
+    void writeVecToCom(const QVector<QPointF> &a);
 
     static int randomBetween(const int &low, const int &high);
 
@@ -173,7 +189,10 @@ private slots:
     void slot_sendCurrLimits();
 
     void slot_manualAdjMode();
-    float getChartValue(QPointF p1, QPointF p2, float x);
+    float getChartValue(const QPointF &p1, const QPointF &p2, const float &x);
+
+    void openChart();
+    void saveChart();
 
 
     //COM port
@@ -190,6 +209,7 @@ public slots:
 signals:
     void signal_outMsgWithData( QString str );
     void signal_resetVec(const QVector<QPointF> &vect);
+
     //COM port
     void signalSaveByteArray(QByteArray tmp);
 

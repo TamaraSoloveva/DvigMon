@@ -10,6 +10,7 @@ class ChartView_move : public QChartView {
 public:
     ChartView_move(QChart *chart, QVector<QPointF> pV, bool bShow, QWidget *parent = 0);
     bool b_showCoordinates;
+    QVector<QPointF> actualizeVector() {return pV;}
 
 protected:
     bool viewportEvent(QEvent *event) override;

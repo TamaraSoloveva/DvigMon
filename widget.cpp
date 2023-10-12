@@ -118,8 +118,6 @@ Widget::Widget(QWidget *parent)
     slot_manualAdjMode();
 }
 
-
-
 /* Функция для получения рандомного числа
  * в диапазоне от минимального до максимального
  * */
@@ -147,8 +145,6 @@ void Widget::handleMarkerClicked() {
         else
             seriesKI0->setVisible(true);
     }
-
-
 }
 
 
@@ -185,7 +181,8 @@ void Widget::slot_manualAdjMode() {
     sDots->setColor(Qt::blue);
 
     pVec.clear();
-    for (int x = 0, y = 0; x <= max_dot_number; x+= max_dot_number/visible_dot_number , y+=3 ) {
+    for (int x = 0; x <= max_dot_number; x+= max_dot_number/visible_dot_number) {
+        float y = getChartValue(QPointF(0, 0), QPointF(300, 100), x);
         sDots->append(QPointF(x, y));
         sLine->append(QPointF(x, y));
         pVec.push_back(QPointF((float)x, y));
@@ -195,7 +192,7 @@ void Widget::slot_manualAdjMode() {
     chart->addSeries(sLine);
     chart->legend()->hide();
 
-    auto chView = new ChartView_move(chart, pVec, act3->isChecked());
+    chView = new ChartView_move(chart, pVec, act3->isChecked());
     connect(act3, &QAction::toggled, chView, [&](bool ch) { chView->b_showCoordinates = ch; });
     connect(chView, &ChartView_move::showCoorinates, this,
             [&](QPointF point){ ui->label_7->setText(QString::number(point.x()) + ", " + QString::number(point.y()));});
@@ -219,28 +216,65 @@ void Widget::slot_manualAdjMode() {
 
     connect(chView, &ChartView_move::repaintChart, this, &Widget::slot_repaintChart);
     connect(ui->pushButton_7, &QPushButton::clicked, this, &Widget::resetChart);
-    //connect(ui->pushButton_6, &QPushButton::clicked, this, &Widget::countAmpl);
     connect(ui->pushButton_6, &QPushButton::clicked, this, &Widget::countAmpl);
     connect(this, &Widget::signal_resetVec, chView, &ChartView_move::resetVector);
+    connect(ui->pushButton_8, &QPushButton::clicked, this, &Widget::openChart);
+    connect(ui->pushButton_9, &QPushButton::clicked, this, &Widget::saveChart);
+
 
 }
 
 void Widget::countAmpl() {
-    QVector<float>amplVec;
+    pVec = chView->actualizeVector();
+    amplVec.clear();
     float amp = 0.;
-    float step = max_dot_number / visible_dot_number;
-    for (int x = 0; x < max_dot_number; x += step) {
-        for (int i = 0; i < pVec.size(); ++i) {
+    float step = max_dot_number / 100;
+    for (int x = 0; x <= max_dot_number; x += step) {
+        for (int i = 0; i < pVec.size()-1; ++i) {
             if ((x >= pVec.at(i).x()) && (x < pVec.at(i+1).x()) ) {
-                amp = getChartValue(pVec.at(i), pVec.at(i+1), x);
-                amplVec.push_back(amp);
-
-
+                amp = getChartValue(pVec.at(i), pVec.at(i+1), static_cast<float>(x));
+                amplVec.push_back(QPointF(x, amp));
+                break;
              }
             else {
                 continue;
-            }
+           }
         }
+    }
+    writeVecToCom(amplVec);
+}
+
+void Widget::writeVecToCom( const QVector<QPointF> &ampl ) {
+    if (ampl.size() != 100)  {
+        ui->label_7->setText("Point number is not equal 101");
+    }
+    if (m_serial->isOpen()) {
+        ui->label_7->setText("No connection with COM port");
+    }
+    else {
+        QFile fl_aTmp("amplitudeTMP.txt");
+        if (!fl_aTmp.open(QIODevice::WriteOnly) ) {
+           QMessageBox::critical(nullptr, "Error", "Unable to open file", QMessageBox::Ok);
+        }
+        wrFlCmdMsg msgCmd;
+        wrNum = 0;
+        QVector<QPointF>::const_iterator it;
+        for ( it = ampl.begin(); it < ampl.end()-2; ++it ) {
+            if (ui->radioButton->isChecked())
+                msgCmd.wrs.strt = '%';
+            else
+                msgCmd.wrs.strt = '&';
+            msgCmd.wrs.val1 = wrNum;
+            msgCmd.wrs.val2 = it->y();
+            it++;
+            msgCmd.wrs.val3 = it->y();
+            wrNum += 2;
+            QString sss = QString("%1 %2 %3\n").arg(msgCmd.wrs.val1).arg(msgCmd.wrs.val2).arg(msgCmd.wrs.val3);
+            fl_aTmp.write(sss.toUtf8());
+        }
+          // writeSerialPort(msgCmd);
+        fl_aTmp.flush();
+        fl_aTmp.close();
     }
 }
 
@@ -248,7 +282,8 @@ void Widget::resetChart( ) {
     sDots->clear();
     sLine->clear();
     pVec.clear();
-    for (int x = 0, y = 0; x <= max_dot_number; x+= max_dot_number/visible_dot_number , y+=3 ) {
+    for (int x = 0; x <= max_dot_number; x+= max_dot_number/visible_dot_number) {
+        float y = getChartValue(QPointF(0, 0), QPointF(300, 100), x);
         sDots->append(QPointF(x, y));
         sLine->append(QPointF(x, y));
         pVec.push_back(QPointF((float)x, y));
@@ -257,10 +292,15 @@ void Widget::resetChart( ) {
 
 }
 
-float Widget::getChartValue(QPointF p1, QPointF p2, float x) {
-    float y = p1.x() + ((x - p1.x())*(p2.y() - p1.y())/(p2.x() - p1.x()));
-    return y;
+float Widget::getChartValue(const QPointF &p1, const QPointF &p2, const float &x) {
+    float a = x - p1.x();
+    float b = p2.y() - p1.y();
+    float c = static_cast<float>(a) * static_cast<float>(b) ;
+    float d = c / (p2.x() - p1.x());
+    float y = d + p1.y();
 
+    y = ((x - p1.x())*(p2.y() - p1.y()))/((p2.x() - p1.x())) + p1.y();
+    return y;
 }
 
 
@@ -905,4 +945,57 @@ void Widget::updateComInfo() {
         }
     }
     sortAlphabetically();
+}
+
+void Widget::openChart() {
+    QString filename = QFileDialog::getOpenFileName(nullptr, QObject::tr("Open chart"), QDir::currentPath(), QObject::tr("Coordinates files (*.txt);;All files (*.*)"));
+    if (filename.isEmpty()) return;
+    QFile file(filename);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+           return;
+    pVec.clear();
+    bool dot = false;
+    while (!file.atEnd()) {
+        QByteArray line = file.readLine();
+        QString str = QString::fromUtf8(line).simplified();
+        if (str == "*") {
+            dot = true;
+            continue;
+        }
+        if (dot) {
+            QStringList strList = str.split(QRegExp(","));
+            QVector<float>tmp;
+            for (auto s : qAsConst(strList)) {
+                tmp.push_back( s.simplified().toFloat()) ;
+            }
+            pVec.push_back(QPointF(tmp.at(0), tmp.at(1)));
+        }
+    }
+    emit signal_resetVec(pVec);
+    slot_repaintChart(pVec);
+    file.close();
+}
+
+
+void Widget::saveChart() {
+    countAmpl();
+    QString filename = QFileDialog::getSaveFileName(this, QObject::tr("Save chart"), QDir::currentPath(), QObject::tr("Coordinates files (*.txt);;All files (*.*)"));
+    if (filename.isEmpty()) return;
+    QFile flAmpl(filename);
+    if (!flAmpl.open(QIODevice::WriteOnly) ) {
+       QMessageBox::critical(nullptr, "Error", "Unable to open file", QMessageBox::Ok);
+       return;
+    }
+    QVector<QPointF>::iterator it;
+    for ( it = amplVec.begin(); it < amplVec.end(); ++it  ) {
+        QString sss = QString("%1, %2\n").arg(it->x()).arg(it->y());
+        flAmpl.write(sss.toUtf8());
+    }
+    flAmpl.write("*\n");
+    for ( it = pVec.begin(); it < pVec.end(); ++it  ) {
+        QString sss = QString("%1, %2\n").arg(it->x()).arg(it->y());
+        flAmpl.write(sss.toUtf8());
+    }
+    flAmpl.flush();
+    flAmpl.close();
 }

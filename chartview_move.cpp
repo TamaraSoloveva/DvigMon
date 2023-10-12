@@ -69,8 +69,6 @@ void ChartView_move::mousePressEvent(QMouseEvent *event) {
 int ChartView_move::findPointInVector(float x, float y) {
     int ret_ind = 0;
     bool pointDetected = false;
-
-    qDebug() << "++++++++++++++++++++++++++++++\n" << x << " " << y;
     for ( auto el : qAsConst(pV)) {
         qDebug() << el.x() << " " << el.y();
         if (( el.x() - 2) <= x && x < (el.x() + 2) ) {
@@ -83,15 +81,11 @@ int ChartView_move::findPointInVector(float x, float y) {
                 continue;
             }
         }
- //      qDebug() << el.x() - 0.2 << " " << el.x() + 0.2;
-//       qDebug() << el.y() - 0.2 << " " << el.y() + 0.2;
         ret_ind++;
     }
     if (!pointDetected)
         ret_ind = -1;
-
     qDebug() << "ret_ind " << ret_ind;
-
     return ret_ind;
 }
 
@@ -120,19 +114,10 @@ void ChartView_move::mouseReleaseEvent(QMouseEvent *event) {
         auto const scenePos = mapToScene(QPoint(static_cast<int>(widgetPos.x()), static_cast<int>(widgetPos.y())));
         auto const chartItemPos = chart()->mapFromScene(scenePos);
         auto const valueGivenSeries = chart()->mapToValue(chartItemPos);
-   //     qDebug() << valueGivenSeries;
- //       qDebug() << "point to change" << pV.at(ind);
+
         pV.insert(ind, QPointF(valueGivenSeries));
         pV.remove(ind+1);
-
-//        for (auto p : qAsConst(pV))
-//            qDebug() << p;
-
-       emit repaintChart( pV );
-
-
-
-
+        emit repaintChart( pV );
     }
     // Because we disabled animations when touch event was detected
     // we must put them back on

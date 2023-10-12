@@ -1,13 +1,13 @@
 /********************************************************************************
-** Form generated from reading UI file 'widgetGSvFuf.ui'
+** Form generated from reading UI file 'widgetyJAyaJ.ui'
 **
 ** Created by: Qt User Interface Compiler version 5.15.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
 
-#ifndef WIDGETGSVFUF_H
-#define WIDGETGSVFUF_H
+#ifndef WIDGETYJAYAJ_H
+#define WIDGETYJAYAJ_H
 
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
@@ -17,6 +17,7 @@
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QPushButton>
+#include <QtWidgets/QRadioButton>
 #include <QtWidgets/QSpacerItem>
 #include <QtWidgets/QTabWidget>
 #include <QtWidgets/QTextEdit>
@@ -74,10 +75,14 @@ public:
     QSpacerItem *verticalSpacer_12;
     QHBoxLayout *horizontalLayout_2;
     QPushButton *pushButton_6;
+    QPushButton *pushButton_8;
+    QPushButton *pushButton_9;
     QPushButton *pushButton_7;
-    QSpacerItem *horizontalSpacer_3;
     QLabel *label_7;
     QSpacerItem *horizontalSpacer_2;
+    QSpacerItem *horizontalSpacer_3;
+    QRadioButton *radioButton;
+    QRadioButton *radioButton_2;
 
     void setupUi(QWidget *Widget)
     {
@@ -317,25 +322,47 @@ public:
 
         horizontalLayout_2->addWidget(pushButton_6);
 
+        pushButton_8 = new QPushButton(tab_6);
+        pushButton_8->setObjectName(QString::fromUtf8("pushButton_8"));
+
+        horizontalLayout_2->addWidget(pushButton_8);
+
+        pushButton_9 = new QPushButton(tab_6);
+        pushButton_9->setObjectName(QString::fromUtf8("pushButton_9"));
+
+        horizontalLayout_2->addWidget(pushButton_9);
+
         pushButton_7 = new QPushButton(tab_6);
         pushButton_7->setObjectName(QString::fromUtf8("pushButton_7"));
 
         horizontalLayout_2->addWidget(pushButton_7);
 
-        horizontalSpacer_3 = new QSpacerItem(40, 20, QSizePolicy::Fixed, QSizePolicy::Minimum);
-
-        horizontalLayout_2->addItem(horizontalSpacer_3);
-
         label_7 = new QLabel(tab_6);
         label_7->setObjectName(QString::fromUtf8("label_7"));
         label_7->setEnabled(true);
-        label_7->setMinimumSize(QSize(150, 0));
+        label_7->setMinimumSize(QSize(90, 0));
+        label_7->setMaximumSize(QSize(80, 16777215));
 
         horizontalLayout_2->addWidget(label_7);
 
         horizontalSpacer_2 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
         horizontalLayout_2->addItem(horizontalSpacer_2);
+
+        horizontalSpacer_3 = new QSpacerItem(20, 20, QSizePolicy::Fixed, QSizePolicy::Minimum);
+
+        horizontalLayout_2->addItem(horizontalSpacer_3);
+
+        radioButton = new QRadioButton(tab_6);
+        radioButton->setObjectName(QString::fromUtf8("radioButton"));
+        radioButton->setChecked(true);
+
+        horizontalLayout_2->addWidget(radioButton);
+
+        radioButton_2 = new QRadioButton(tab_6);
+        radioButton_2->setObjectName(QString::fromUtf8("radioButton_2"));
+
+        horizontalLayout_2->addWidget(radioButton_2);
 
 
         gridLayout->addLayout(horizontalLayout_2, 1, 0, 1, 1);
@@ -376,8 +403,12 @@ public:
         tabWidget->setTabText(tabWidget->indexOf(tab_3), QCoreApplication::translate("Widget", "I2", nullptr));
         tabWidget->setTabText(tabWidget->indexOf(tab_2), QCoreApplication::translate("Widget", "U", nullptr));
         pushButton_6->setText(QCoreApplication::translate("Widget", "Send values", nullptr));
+        pushButton_8->setText(QCoreApplication::translate("Widget", "Open", nullptr));
+        pushButton_9->setText(QCoreApplication::translate("Widget", "Save", nullptr));
         pushButton_7->setText(QCoreApplication::translate("Widget", "Reset", nullptr));
-        label_7->setText(QCoreApplication::translate("Widget", "TextLabel", nullptr));
+        label_7->setText(QString());
+        radioButton->setText(QCoreApplication::translate("Widget", "Accelerate", nullptr));
+        radioButton_2->setText(QCoreApplication::translate("Widget", "Braking", nullptr));
         tabWidget->setTabText(tabWidget->indexOf(tab_6), QCoreApplication::translate("Widget", "Equalize ", nullptr));
     } // retranslateUi
 
@@ -389,4 +420,4 @@ namespace Ui {
 
 QT_END_NAMESPACE
 
-#endif // WIDGETGSVFUF_H
+#endif // WIDGETYJAYAJ_H
