@@ -1,13 +1,13 @@
 /********************************************************************************
-** Form generated from reading UI file 'widgetyJAyaJ.ui'
+** Form generated from reading UI file 'widgetGmlnCw.ui'
 **
 ** Created by: Qt User Interface Compiler version 5.15.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
 
-#ifndef WIDGETYJAYAJ_H
-#define WIDGETYJAYAJ_H
+#ifndef WIDGETGMLNCW_H
+#define WIDGETGMLNCW_H
 
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
@@ -29,11 +29,11 @@ QT_BEGIN_NAMESPACE
 class Ui_Widget
 {
 public:
-    QGridLayout *gridLayout_3;
+    QGridLayout *gridLayout_5;
     QTabWidget *tabWidget;
     QWidget *tab;
     QGridLayout *gridLayout_2;
-    QHBoxLayout *horizontalLayout;
+    QGridLayout *gridLayout_3;
     QTextEdit *textEdit;
     QSpacerItem *horizontalSpacer;
     QVBoxLayout *verticalLayout;
@@ -90,8 +90,8 @@ public:
             Widget->setObjectName(QString::fromUtf8("Widget"));
         Widget->resize(593, 578);
         Widget->setMinimumSize(QSize(561, 578));
-        gridLayout_3 = new QGridLayout(Widget);
-        gridLayout_3->setObjectName(QString::fromUtf8("gridLayout_3"));
+        gridLayout_5 = new QGridLayout(Widget);
+        gridLayout_5->setObjectName(QString::fromUtf8("gridLayout_5"));
         tabWidget = new QTabWidget(Widget);
         tabWidget->setObjectName(QString::fromUtf8("tabWidget"));
         tabWidget->setMinimumSize(QSize(561, 555));
@@ -99,17 +99,17 @@ public:
         tab->setObjectName(QString::fromUtf8("tab"));
         gridLayout_2 = new QGridLayout(tab);
         gridLayout_2->setObjectName(QString::fromUtf8("gridLayout_2"));
-        horizontalLayout = new QHBoxLayout();
-        horizontalLayout->setObjectName(QString::fromUtf8("horizontalLayout"));
+        gridLayout_3 = new QGridLayout();
+        gridLayout_3->setObjectName(QString::fromUtf8("gridLayout_3"));
         textEdit = new QTextEdit(tab);
         textEdit->setObjectName(QString::fromUtf8("textEdit"));
         textEdit->setReadOnly(true);
 
-        horizontalLayout->addWidget(textEdit);
+        gridLayout_3->addWidget(textEdit, 0, 0, 1, 1);
 
         horizontalSpacer = new QSpacerItem(13, 20, QSizePolicy::Maximum, QSizePolicy::Minimum);
 
-        horizontalLayout->addItem(horizontalSpacer);
+        gridLayout_3->addItem(horizontalSpacer, 0, 1, 1, 1);
 
         verticalLayout = new QVBoxLayout();
         verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
@@ -287,10 +287,10 @@ public:
         verticalLayout->addItem(verticalSpacer);
 
 
-        horizontalLayout->addLayout(verticalLayout);
+        gridLayout_3->addLayout(verticalLayout, 0, 2, 1, 1);
 
 
-        gridLayout_2->addLayout(horizontalLayout, 0, 0, 1, 1);
+        gridLayout_2->addLayout(gridLayout_3, 0, 0, 1, 1);
 
         tabWidget->addTab(tab, QString());
         tab_4 = new QWidget();
@@ -372,12 +372,12 @@ public:
 
         tabWidget->addTab(tab_6, QString());
 
-        gridLayout_3->addWidget(tabWidget, 0, 0, 1, 1);
+        gridLayout_5->addWidget(tabWidget, 0, 0, 1, 1);
 
 
         retranslateUi(Widget);
 
-        tabWidget->setCurrentIndex(5);
+        tabWidget->setCurrentIndex(0);
 
 
         QMetaObject::connectSlotsByName(Widget);
@@ -385,7 +385,7 @@ public:
 
     void retranslateUi(QWidget *Widget)
     {
-        Widget->setWindowTitle(QCoreApplication::translate("Widget", "Widget", nullptr));
+        Widget->setWindowTitle(QCoreApplication::translate("Widget", "DvigMon", nullptr));
         label->setText(QCoreApplication::translate("Widget", "COM number", nullptr));
         pushButton_2->setText(QCoreApplication::translate("Widget", "Connect", nullptr));
         label_2->setText(QCoreApplication::translate("Widget", "Input test time, sec", nullptr));
@@ -407,8 +407,8 @@ public:
         pushButton_9->setText(QCoreApplication::translate("Widget", "Save", nullptr));
         pushButton_7->setText(QCoreApplication::translate("Widget", "Reset", nullptr));
         label_7->setText(QString());
-        radioButton->setText(QCoreApplication::translate("Widget", "Accelerate", nullptr));
-        radioButton_2->setText(QCoreApplication::translate("Widget", "Braking", nullptr));
+        radioButton->setText(QCoreApplication::translate("Widget", "Start", nullptr));
+        radioButton_2->setText(QCoreApplication::translate("Widget", "Stop", nullptr));
         tabWidget->setTabText(tabWidget->indexOf(tab_6), QCoreApplication::translate("Widget", "Equalize ", nullptr));
     } // retranslateUi
 
@@ -420,4 +420,4 @@ namespace Ui {
 
 QT_END_NAMESPACE
 
-#endif // WIDGETYJAYAJ_H
+#endif // WIDGETGMLNCW_H

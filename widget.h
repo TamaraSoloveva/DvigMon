@@ -29,7 +29,6 @@
 #include "chart.h"
 #include "chartview.h"
 #include "chartview_move.h"
-#include "moveitem.h"
 #include "getparams.h"
 #include <QVXYModelMapper>
 #include <QAbstractTableModel>
@@ -155,12 +154,10 @@ private:
     QLineSeries *seriesMedU;
 
     int iCnt;
-    float wrNum;
+    int chSm;
     QSerialPort *m_serial;
 
     QGraphicsScene *scene;
-
-    QVector<MoveItem *>itVec;
 
     void updateComInfo();
     void sortAlphabetically();

@@ -70,7 +70,7 @@ int ChartView_move::findPointInVector(float x, float y) {
     int ret_ind = 0;
     bool pointDetected = false;
     for ( auto el : qAsConst(pV)) {
-        qDebug() << el.x() << " " << el.y();
+       // qDebug() << el.x() << " " << el.y();
         if (( el.x() - 2) <= x && x < (el.x() + 2) ) {
             if (( el.y() - 1) <= y && y < (el.y() + 1)) {
                 pointDetected = true;
@@ -85,7 +85,7 @@ int ChartView_move::findPointInVector(float x, float y) {
     }
     if (!pointDetected)
         ret_ind = -1;
-    qDebug() << "ret_ind " << ret_ind;
+ //   qDebug() << "ret_ind " << ret_ind;
     return ret_ind;
 }
 
@@ -97,7 +97,7 @@ void ChartView_move::mouseMoveEvent(QMouseEvent *event) {
         auto const scenePos = mapToScene(QPoint(static_cast<int>(widgetPos.x()), static_cast<int>(widgetPos.y())));
         auto const chartItemPos = chart()->mapFromScene(scenePos);
         auto const valueGivenSeries = chart()->mapToValue(chartItemPos);
-        emit showCoorinates(valueGivenSeries);
+        emit showInfoOnLabel(valueGivenSeries);
     }
     QChartView::mouseMoveEvent(event);
 }
@@ -114,9 +114,17 @@ void ChartView_move::mouseReleaseEvent(QMouseEvent *event) {
         auto const chartItemPos = chart()->mapFromScene(scenePos);
         auto const valueGivenSeries = chart()->mapToValue(chartItemPos);
 
-        pV.insert(ind, QPointF(valueGivenSeries));
-        pV.remove(ind+1);
-        emit repaintChart( pV );
+       if ((valueGivenSeries.x() > pV.at(ind-1).x()) && (valueGivenSeries.x() > pV.at(ind+1).x())) {
+           pV.insert(ind, QPointF(pV.at(ind+1).x(), valueGivenSeries.y()));
+       }
+       else if((valueGivenSeries.x() < pV.at(ind-1).x()) && (valueGivenSeries.x() < pV.at(ind+1).x())) {
+           pV.insert(ind, QPointF(pV.at(ind-1).x(), valueGivenSeries.y()));
+       }
+       else {
+            pV.insert(ind, QPointF(valueGivenSeries));
+       }
+       pV.remove(ind+1);
+       emit repaintChart( pV );
     }
     // Because we disabled animations when touch event was detected
     // we must put them back on

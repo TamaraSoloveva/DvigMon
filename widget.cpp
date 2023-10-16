@@ -63,7 +63,7 @@ Widget::Widget(QWidget *parent)
 
     QMenuBar *mnuBar;
     mnuBar = new QMenuBar();
-    ui->gridLayout->addWidget(mnuBar);
+    ui->gridLayout_3->addWidget(mnuBar);
     mnuBar->addMenu(pmnu);
 
     val=tmp=cntr=numInArr=0;
@@ -113,7 +113,6 @@ Widget::Widget(QWidget *parent)
     QVBoxLayout *vbox3 = new QVBoxLayout;
     vbox3->addWidget(chartViewU);
     ui->tab_2->setLayout(vbox3);
-
     slot_manualAdjMode();
 }
 
@@ -149,7 +148,13 @@ void Widget::handleMarkerClicked() {
 
 void Widget::readRawData() {
     QByteArray rdData = m_serial->readAll();
-    SaveByteArray(rdData );
+    if (rdData.size() >= 4) {
+        if ((rdData.at(0) == 0x41) && (rdData.at(1) == 0x53) && (rdData.at(2) == 0x53) && (rdData.at(3) == '!')) {
+            rdData.remove(0, 4);
+        }
+    }
+    if (rdData.size())
+        SaveByteArray(rdData );
 }
 
 
@@ -193,8 +198,8 @@ void Widget::slot_manualAdjMode() {
 
     chView = new ChartView_move(chart, pVec);
     connect(act3, &QAction::toggled, chView, [&](bool ch) { ui->label_7->setVisible(ch); });
-    connect(chView, &ChartView_move::showCoorinates, this,
-            [&](QPointF point){ if (ui->label_7->isVisible()) ui->label_7->setText(QString::number(point.x()) + ", " + QString::number(point.y()));});
+    connect(chView, &ChartView_move::showInfoOnLabel, this, [&](QPointF point) {
+        if (ui->label_7->isVisible() ) ui->label_7->setText(QString::number(point.x()) + ", " + QString::number(point.y()));});
     ui->gridLayout->addWidget(chView, 0, 0);
 
     auto axisX = new QValueAxis;
@@ -241,9 +246,8 @@ QVector<QPointF> Widget::countAmpl() {
 
 void Widget::writeVecToCom( ) {
     const QVector<QPointF> &ampl = countAmpl();
-    //НЕ ЗАБУДЬ ИСПРАВИТЬ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    if (m_serial->isOpen()) {
-        ui->label_7->setText("No connection with COM port");
+    if (!m_serial->isOpen()) {
+        ui->label_7->setText("NO CONNECTION!!!");
     }
     else {
         QFile fl_aTmp("send.txt");
@@ -251,22 +255,52 @@ void Widget::writeVecToCom( ) {
            QMessageBox::critical(nullptr, "Error", "Unable to open file", QMessageBox::Ok);
         }
         wrCmdMsg msgCmd;
-        wrNum = 0;
+        chSm = 0;
         QVector<QPointF>::const_iterator it;
-        for ( it = ampl.begin(); it < ampl.end()-2; ++it ) {
+        for ( it = ampl.begin(); it < ampl.end(); ++it ) {
             if (ui->radioButton->isChecked())
                 msgCmd.wrs.strt = '%';
             else
                 msgCmd.wrs.strt = '&';
-            msgCmd.wrs.freq_msb = wrNum;
+            msgCmd.wrs.freq_msb = qRound(it->y());
+            QString sss = QString("%1 - %2\n").arg(msgCmd.wrs.freq_msb).arg(it->y());
+            fl_aTmp.write(sss.toUtf8());
+
+            chSm ^= qRound(it->y());
+            it++;
             msgCmd.wrs.freq_lsb = qRound(it->y());
+            sss = QString("%1 - %2\n").arg(msgCmd.wrs.freq_lsb).arg(it->y());
+            fl_aTmp.write(sss.toUtf8());
+
+            chSm ^= qRound(it->y());
             it++;
             msgCmd.wrs.end = qRound(it->y());
-            wrNum += 2;
-            QString sss = QString("#%1\n%2\n%3\n").arg(msgCmd.wrs.freq_msb).arg(msgCmd.wrs.freq_lsb).arg(msgCmd.wrs.end);
+            sss = QString("%1 - %2\n").arg(msgCmd.wrs.end).arg(it->y());
             fl_aTmp.write(sss.toUtf8());
+
+
+            chSm ^= qRound(it->y());
+            writeSerialPort(msgCmd);
         }
-          // writeSerialPort(msgCmd);
+        if (ui->radioButton->isChecked())
+            msgCmd.wrs.strt = '%';
+        else
+            msgCmd.wrs.strt = '&';
+
+        int tmp = chSm;
+        chSm &= 0xFF;
+        msgCmd.wrs.freq_msb = chSm;
+        chSm = tmp;
+        chSm >>= 8;
+        chSm &= 0xFF;
+        msgCmd.wrs.freq_lsb = chSm;
+        chSm = tmp;
+        chSm >>= 16;
+        chSm &= 0xFF;
+        msgCmd.wrs.end = chSm;
+        writeSerialPort(msgCmd);
+        QString sss = QString("ChSm: %1 %2 %3").arg(msgCmd.wrs.freq_msb).arg(msgCmd.wrs.freq_lsb).arg(msgCmd.wrs.end);
+        fl_aTmp.write(sss.toUtf8());
         fl_aTmp.flush();
         fl_aTmp.close();
     }
@@ -283,17 +317,10 @@ void Widget::resetChart( ) {
         pVec.push_back(QPointF((float)x, y));
     }
     emit signal_resetVec(pVec);
-
 }
 
 float Widget::getChartValue(const QPointF &p1, const QPointF &p2, const float &x) {
-    float a = x - p1.x();
-    float b = p2.y() - p1.y();
-    float c = static_cast<float>(a) * static_cast<float>(b) ;
-    float d = c / (p2.x() - p1.x());
-    float y = d + p1.y();
-
-    y = ((x - p1.x())*(p2.y() - p1.y()))/((p2.x() - p1.x())) + p1.y();
+    float y = ((x - p1.x())*(p2.y() - p1.y()))/((p2.x() - p1.x())) + p1.y();
     return y;
 }
 
@@ -994,13 +1021,13 @@ void Widget::saveChart() {
     flAmpl.flush();
     flAmpl.close();
     //CHECK
-    QScatterSeries *www = new QScatterSeries;
-    www->setMarkerSize(5);
-    www->setColor(Qt::red);
-    for (auto x : amplVec) {
-        www->append(QPoint(x.x(), x.y()));
+//    QScatterSeries *www = new QScatterSeries;
+//    www->setMarkerSize(5);
+//    www->setColor(Qt::red);
+//    for (auto x : amplVec) {
+//        www->append(QPoint(x.x(), x.y()));
 
-    }
-    chart->addSeries(www);
+//    }
+//    chart->addSeries(www);
 
 }

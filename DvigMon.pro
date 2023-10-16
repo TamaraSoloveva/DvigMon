@@ -20,7 +20,6 @@ SOURCES += \
     chartview_move.cpp \
     getparams.cpp \
     main.cpp \
-    moveitem.cpp \
     widget.cpp
 
 HEADERS += \
@@ -28,7 +27,6 @@ HEADERS += \
     chartview.h \
     chartview_move.h \
     getparams.h \
-    moveitem.h \
     qchartview.h \
     ui_widget.h \
     widget.h
@@ -42,3 +40,8 @@ QMAKE_LFLAGS += -static -static-libgcc
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+win32:RC_FILE = file.rc
+
+
+

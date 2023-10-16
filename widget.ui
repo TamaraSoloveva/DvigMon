@@ -17,9 +17,9 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Widget</string>
+   <string>DvigMon</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout_3">
+  <layout class="QGridLayout" name="gridLayout_5">
    <item row="0" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="minimumSize">
@@ -29,7 +29,7 @@
       </size>
      </property>
      <property name="currentIndex">
-      <number>5</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -37,15 +37,15 @@
       </attribute>
       <layout class="QGridLayout" name="gridLayout_2">
        <item row="0" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout">
-         <item>
+        <layout class="QGridLayout" name="gridLayout_3">
+         <item row="0" column="0">
           <widget class="QTextEdit" name="textEdit">
            <property name="readOnly">
             <bool>true</bool>
            </property>
           </widget>
          </item>
-         <item>
+         <item row="0" column="1">
           <spacer name="horizontalSpacer">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
@@ -61,7 +61,7 @@
            </property>
           </spacer>
          </item>
-         <item>
+         <item row="0" column="2">
           <layout class="QVBoxLayout" name="verticalLayout">
            <item>
             <widget class="QLabel" name="label">
@@ -656,7 +656,7 @@
            <item>
             <widget class="QRadioButton" name="radioButton">
              <property name="text">
-              <string>Accelerate</string>
+              <string>Start</string>
              </property>
              <property name="checked">
               <bool>true</bool>
@@ -666,7 +666,7 @@
            <item>
             <widget class="QRadioButton" name="radioButton_2">
              <property name="text">
-              <string>Braking</string>
+              <string>Stop</string>
              </property>
             </widget>
            </item>
@@ -680,6 +680,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="res.qrc"/>
+ </resources>
  <connections/>
 </ui>

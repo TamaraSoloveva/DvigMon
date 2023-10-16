@@ -26,7 +26,7 @@ private:
     QVector<QPointF> pV;
 signals:
     void repaintChart( const QVector<QPointF> & pV);
-    void showCoorinates(const QPointF &point);
+    void showInfoOnLabel(const QPointF &point);
 public slots:
     void resetVector(const QVector<QPointF> & vInput) {pV.clear(); pV = vInput; }
 };
