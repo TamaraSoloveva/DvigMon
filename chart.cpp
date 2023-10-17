@@ -32,8 +32,7 @@
 #include <QtWidgets/QGraphicsScene>
 #include <QtWidgets/QGraphicsView>
 
-Chart::Chart(QGraphicsItem *parent, Qt::WindowFlags wFlags)
-    : QChart(QChart::ChartTypeCartesian, parent, wFlags)
+Chart::Chart(QGraphicsItem *parent) : QChart(parent)
 {
     // Seems that QGraphicsView (QChartView) does not grab gestures.
     // They can only be grabbed here in the QGraphicsWidget (QChart).

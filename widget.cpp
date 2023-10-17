@@ -45,7 +45,7 @@ Widget::Widget(QWidget *parent)
     connect( m_serial, &QSerialPort::errorOccurred, this, &Widget::handleError);
 
     QMenu *pmnu   = new QMenu("&Menu");
-    pmnu->addAction("&Save charts", this,  SLOT(slot_saveCharts()), Qt::CTRL + Qt::Key_S);   
+    pmnu->addAction("&Save charts", this,  SLOT(slot_saveCharts()), Qt::CTRL + Qt::Key_S);
     QAction *act = new QAction("&Use func");
     act->setCheckable(true);
     pmnu->addAction(act);
@@ -81,8 +81,7 @@ Widget::Widget(QWidget *parent)
     chartViewI0 = new ChartView(chartI0);
     QVBoxLayout *vbox0 = new QVBoxLayout;
     vbox0->addWidget(chartViewI0);
-    ui->tab_4->setLayout(vbox0);   
-
+    ui->tab_4->setLayout(vbox0);
 
     chartI1 = new Chart();
     chartI1->legend()->setAlignment(Qt::AlignBottom);
@@ -98,7 +97,7 @@ Widget::Widget(QWidget *parent)
     chartI2->legend()->setAlignment(Qt::AlignBottom);
     chartI2->legend()->setMarkerShape(QLegend::MarkerShapeRectangle);
     chartI2->createDefaultAxes();
-    chartI2->setTitle("I2");   
+    chartI2->setTitle("I2");
     chartViewI2 = new ChartView(chartI2);
     QVBoxLayout *vbox2 = new QVBoxLayout;
     vbox2->addWidget(chartViewI2);
@@ -113,7 +112,8 @@ Widget::Widget(QWidget *parent)
     QVBoxLayout *vbox3 = new QVBoxLayout;
     vbox3->addWidget(chartViewU);
     ui->tab_2->setLayout(vbox3);
-    slot_manualAdjMode();
+
+    manualAdjMode();
 }
 
 /* Функция для получения рандомного числа
@@ -149,8 +149,9 @@ void Widget::handleMarkerClicked() {
 void Widget::readRawData() {
     QByteArray rdData = m_serial->readAll();
     if (rdData.size() >= 4) {
-        if ((rdData.at(0) == 0x41) && (rdData.at(1) == 0x53) && (rdData.at(2) == 0x53) && (rdData.at(3) == '!')) {
+        if ((rdData.at(0) == '@') && (rdData.at(1) == 0x41) && (rdData.at(2) == 0x53) && (rdData.at(3) == 0x53) ) {
             rdData.remove(0, 4);
+            QMessageBox::warning(this, "Error", "CC error", QMessageBox::Ok);
         }
     }
     if (rdData.size())
@@ -173,7 +174,7 @@ void Widget::slot_sendData() {
 }
 
 
-void Widget::slot_manualAdjMode() {
+void Widget::manualAdjMode() {
     chart = new QChart;
     chart->setAnimationOptions(QChart::AllAnimations);
     chart->setTitle("Equaliser");
@@ -186,7 +187,7 @@ void Widget::slot_manualAdjMode() {
 
     pVec.clear();
     for (int x = 0; x <= max_dot_number; x+= max_dot_number/visible_dot_number) {
-        float y = getChartValue(QPointF(0, 0), QPointF(300, 100), x);
+        float y = getChartValue(QPointF(0, 0), QPointF(max_dot_number, 100), x);
         sDots->append(QPointF(x, y));
         sLine->append(QPointF(x, y));
         pVec.push_back(QPointF((float)x, y));
@@ -196,7 +197,7 @@ void Widget::slot_manualAdjMode() {
     chart->addSeries(sLine);
     chart->legend()->hide();
 
-    chView = new ChartView_move(chart, pVec);
+    chView = new ChartView_move(chart, max_dot_number, pVec);
     connect(act3, &QAction::toggled, chView, [&](bool ch) { ui->label_7->setVisible(ch); });
     connect(chView, &ChartView_move::showInfoOnLabel, this, [&](QPointF point) {
         if (ui->label_7->isVisible() ) ui->label_7->setText(QString::number(point.x()) + ", " + QString::number(point.y()));});
@@ -248,6 +249,7 @@ void Widget::writeVecToCom( ) {
     const QVector<QPointF> &ampl = countAmpl();
     if (!m_serial->isOpen()) {
         ui->label_7->setText("NO CONNECTION!!!");
+        QMessageBox::warning(this, "Error!", "No connection to COM port", QMessageBox::Ok );
     }
     else {
         QFile fl_aTmp("send.txt");
@@ -286,7 +288,6 @@ void Widget::writeVecToCom( ) {
             msgCmd.wrs.strt = '%';
         else
             msgCmd.wrs.strt = '&';
-
         int tmp = chSm;
         chSm &= 0xFF;
         msgCmd.wrs.freq_msb = chSm;
@@ -876,9 +877,11 @@ void Widget::writeSerialPort( wrCmdMsg & msgCmd, size_t sz ) {
 }
 
 void Widget::stopTest(bool byBtn) {
-     timer->stop();
-     delete timer;
-     timer = nullptr;
+    if (timer) {
+        timer->stop();
+        delete timer;
+        timer = nullptr;
+    }
      if (timerReq->isActive()) {
         timerReq->stop();
         delete timerReq;
@@ -987,7 +990,7 @@ void Widget::openChart() {
         if (dot) {
             QStringList strList = str.split(QRegExp(","));
             QVector<float>tmp;
-            for (auto s : qAsConst(strList)) {
+            for (const auto &s : qAsConst(strList)) {
                 tmp.push_back( s.simplified().toFloat()) ;
             }
             pVec.push_back(QPointF(tmp.at(0), tmp.at(1)));

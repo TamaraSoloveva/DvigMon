@@ -32,6 +32,7 @@
 #include "getparams.h"
 #include <QVXYModelMapper>
 #include <QAbstractTableModel>
+#include <QMessageBox>
 
 QT_BEGIN_NAMESPACE
 #include <QChart>
@@ -170,6 +171,7 @@ private:
     void SaveByteArray( const QByteArray & arr);
     float findMedianN_optim(const float & newVal);
     void printCharts( const QVector<QVector<float>> &points, const float  & k);
+    void manualAdjMode();
     QVector<QPointF> countAmpl();
 
 
@@ -187,7 +189,7 @@ private slots:
     void slot_sendData();
     void slot_sendCurrLimits();
 
-    void slot_manualAdjMode();
+
     float getChartValue(const QPointF &p1, const QPointF &p2, const float &x);
     void writeVecToCom();
     void openChart();

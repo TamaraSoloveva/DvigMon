@@ -67,9 +67,6 @@ void ChartView::mouseMoveEvent(QMouseEvent *event) {
 }
 
 void ChartView::mouseReleaseEvent(QMouseEvent *event) {
-//    if (event-> == Qt::CTRL) {
-
-//    }
     if (m_isTouching) {
         m_isTouching = false;
         lastPos = event->pos();

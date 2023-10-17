@@ -31,8 +31,8 @@
 #include <QtGui/QMouseEvent>
 #include <QDebug>
 
-ChartView_move::ChartView_move(QChart *chart, QVector<QPointF> pV, QWidget *parent) :
-    QChartView(chart, parent), ind(0), m_isTouching(false), pV(pV) {
+ChartView_move::ChartView_move(QChart *chart, const int &max_dot_number, QVector<QPointF> pV, QWidget *parent) :
+    QChartView(chart, parent), ind(0), m_isTouching(false), max_dot_nmb(max_dot_number), pV(pV) {
 
 }
 
@@ -85,7 +85,7 @@ int ChartView_move::findPointInVector(float x, float y) {
     }
     if (!pointDetected)
         ret_ind = -1;
- //   qDebug() << "ret_ind " << ret_ind;
+  //  qDebug() << "ret_ind " << ret_ind;
     return ret_ind;
 }
 
@@ -102,26 +102,41 @@ void ChartView_move::mouseMoveEvent(QMouseEvent *event) {
     QChartView::mouseMoveEvent(event);
 }
 
-
+void ChartView_move::resetVector(const QVector<QPointF> & vInput) {
+    pV.clear();
+    for ( auto el : vInput )
+        pV.push_back(el);
+}
 
 
 void ChartView_move::mouseReleaseEvent(QMouseEvent *event) {
     if (m_isTouching) {
-        m_isTouching = false;
-        if (ind == -1) return;
-        auto const widgetPos = event->localPos();
-        auto const scenePos = mapToScene(QPoint(static_cast<int>(widgetPos.x()), static_cast<int>(widgetPos.y())));
-        auto const chartItemPos = chart()->mapFromScene(scenePos);
-        auto const valueGivenSeries = chart()->mapToValue(chartItemPos);
+       m_isTouching = false;
+       if (ind == -1) return;
+       auto const widgetPos = event->localPos();
+       auto const scenePos = mapToScene(QPoint(static_cast<int>(widgetPos.x()), static_cast<int>(widgetPos.y())));
+       auto const chartItemPos = chart()->mapFromScene(scenePos);
+       auto const valueGivenSeries = chart()->mapToValue(chartItemPos);
 
-       if ((valueGivenSeries.x() > pV.at(ind-1).x()) && (valueGivenSeries.x() > pV.at(ind+1).x())) {
-           pV.insert(ind, QPointF(pV.at(ind+1).x(), valueGivenSeries.y()));
+       float x_wr = 0.0, y_wr = 0.0;
+       if ( valueGivenSeries.x() < 0 || ind == 0 ) x_wr = 0;
+       else if ( valueGivenSeries.x() > max_dot_nmb || ind == pV.size()-1 ) x_wr = max_dot_nmb;
+       else x_wr = valueGivenSeries.x();
+
+       if ( valueGivenSeries.y() < 0 ) y_wr = 0.0;
+       else if ( valueGivenSeries.y() > 100 ) y_wr = 100.0;
+       else y_wr = valueGivenSeries.y();
+
+       if ((ind < pV.size()-1) && (ind > 0) && (valueGivenSeries.x() > pV.at(ind-1).x()) && (valueGivenSeries.x() > pV.at(ind+1).x())) {
+           pV.insert(ind, QPointF(pV.at(ind+1).x(), y_wr));
        }
-       else if((valueGivenSeries.x() < pV.at(ind-1).x()) && (valueGivenSeries.x() < pV.at(ind+1).x())) {
-           pV.insert(ind, QPointF(pV.at(ind-1).x(), valueGivenSeries.y()));
+       else if((ind < pV.size()-1) && (ind > 0) && (valueGivenSeries.x() < pV.at(ind-1).x()) && (valueGivenSeries.x() < pV.at(ind+1).x())) {
+           //pV.insert(ind, QPointF(pV.at(ind-1).x(), valueGivenSeries.y()));
+           pV.insert(ind, QPointF(pV.at(ind-1).x(), y_wr ));
        }
        else {
-            pV.insert(ind, QPointF(valueGivenSeries));
+           // pV.insert(ind, QPointF(valueGivenSeries));
+            pV.insert(ind, QPointF(x_wr, y_wr));
        }
        pV.remove(ind+1);
        emit repaintChart( pV );
