@@ -101,10 +101,12 @@ private:
     QAction *act3;
     ChartView_move *chView;
 
+    int sec_num_wait;
 
     size_t rdSet_num;
     QTimer *timer, *timerReq;
     size_t secNum, currSec;
+    QTimer *waitTimer;
 
     QMutex mutex;
     QFile fl, fl_tmp;
@@ -194,6 +196,7 @@ private slots:
     void writeVecToCom();
     void openChart();
     void saveChart();
+    void waitAnswerFromTMN();
 
 
     //COM port

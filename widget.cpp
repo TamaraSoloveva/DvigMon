@@ -3,6 +3,7 @@
 
 const int max_dot_number = 300;
 const int visible_dot_number = 30;
+const int max_wait_time = 5;
 
 Widget::Widget(QWidget *parent)
     : QWidget(parent)
@@ -30,6 +31,9 @@ Widget::Widget(QWidget *parent)
     ui->lineEdit->setValidator( new QIntValidator(1, 1000000000));
     ui->lineEdit_3->setValidator( new QIntValidator(0, 1000000000));
 
+    //DELETE
+    ui->pushButton->setEnabled(true);
+
     connect(actClean, &QAction::triggered, this, &Widget::slot_cleanScreen);
     //"Connect"
     connect(ui->pushButton_2, &QPushButton::clicked, this, &Widget::slot_connectToCom);
@@ -43,6 +47,20 @@ Widget::Widget(QWidget *parent)
     //COM port
     connect( m_serial, &QSerialPort::readyRead, this, &Widget::readRawData);
     connect( m_serial, &QSerialPort::errorOccurred, this, &Widget::handleError);
+
+    //ТАЙМЕРЫ
+    //таймер времени работы теста
+    timer = new QTimer;
+    timer->setInterval(1000);
+    connect(timer, &QTimer::timeout, this, &Widget::updateTime);
+    timerReq = new QTimer;
+    timerReq->setInterval(500);
+    connect(timerReq, &QTimer::timeout, this, &Widget::sendReq);
+    //таймер запускается при отправке массива данных, если нет ответа в течение
+    //max_wait_time секунд - сообщение об ошибке
+    waitTimer = new QTimer();
+    waitTimer->setInterval(1000);
+    connect(waitTimer, &QTimer::timeout, this, &Widget::waitAnswerFromTMN);
 
     QMenu *pmnu   = new QMenu("&Menu");
     pmnu->addAction("&Save charts", this,  SLOT(slot_saveCharts()), Qt::CTRL + Qt::Key_S);
@@ -151,7 +169,13 @@ void Widget::readRawData() {
     if (rdData.size() >= 4) {
         if ((rdData.at(0) == '@') && (rdData.at(1) == 0x41) && (rdData.at(2) == 0x53) && (rdData.at(3) == 0x53) ) {
             rdData.remove(0, 4);
-            QMessageBox::warning(this, "Error", "CC error", QMessageBox::Ok);
+            QMessageBox::warning(this, "Error", "CRC error", QMessageBox::Ok);
+            waitTimer->stop();
+        }
+        else if ((rdData.at(0) == '@') && (rdData.at(1) == 0x0) && (rdData.at(2) == 0x4f) && (rdData.at(3) == 0x4B) ) {
+            rdData.remove(0, 4);
+            QMessageBox::information(this, "Info", "Packet received", QMessageBox::Ok);
+            waitTimer->stop();
         }
     }
     if (rdData.size())
@@ -227,6 +251,15 @@ void Widget::manualAdjMode() {
     connect(ui->pushButton_9, &QPushButton::clicked, this, &Widget::saveChart);
 }
 
+void Widget::waitAnswerFromTMN() {
+    sec_num_wait++;
+    if (sec_num_wait == max_wait_time) {
+        waitTimer->stop();
+        QMessageBox::critical(this, "Error", "No answer received!", QMessageBox::Ok);
+    }
+
+}
+
 QVector<QPointF> Widget::countAmpl() {
     QVector<QPointF> amplVec;
     float amp = 0.;
@@ -252,6 +285,8 @@ void Widget::writeVecToCom( ) {
         QMessageBox::warning(this, "Error!", "No connection to COM port", QMessageBox::Ok );
     }
     else {
+        sec_num_wait = 0;
+        waitTimer->start();
         QFile fl_aTmp("send.txt");
         if (!fl_aTmp.open(QIODevice::WriteOnly) ) {
            QMessageBox::critical(nullptr, "Error", "Unable to open file", QMessageBox::Ok);
@@ -374,6 +409,7 @@ void Widget::slot_sendCurrLimits() {
 
 
 void Widget::slot_manageTest() {
+
     if ( ui->pushButton->text() == "Start test") {
         startTest();
     }
@@ -736,14 +772,19 @@ Widget::~Widget() {
     delete chartI2;
     delete chartViewI2;
 
-
     if (seriesU) delete seriesU;
     if (seriesU) delete seriesKU;
     if (seriesMedU) delete seriesMedU;
+
+    slot_stopConnection();
+
+    delete timer;
+    delete timerReq;
+    delete waitTimer;
     delete chartU;
     delete chartViewU;
 
-    slot_stopConnection();
+
     delete ui;
 }
 
@@ -768,11 +809,7 @@ void Widget::slot_stopConnection() {
     ui->comboBox->setEnabled(true);
     ui->pushButton->setEnabled(false);
     closeSerialPort();
-    if (timer || timerReq ) {
-        stopTest(true);
-        timer = nullptr;
-        timerReq = nullptr;
-    }
+    stopTest(true);
     if (fl.isOpen()) {
         fl.flush();
         fl.close();
@@ -833,20 +870,12 @@ void Widget::startTest() {
     currSec=0;
     ui->pushButton->setText("Stop test");
     emit signal_outMsgWithData(QString("Test started. Work time: %1 seconds").arg(secNum));
-
-    timer = new QTimer;
-    timer->setInterval(1000);
     timer->start();
-    connect(timer, &QTimer::timeout, this, &Widget::updateTime);
 
     QString aa;
     if (useTstFlag) {
-        timerReq = new QTimer;
-        timerReq->setInterval(500);
         timerReq->start();
-        connect(timerReq, &QTimer::timeout, this, &Widget::sendReq);
         aa = QDir::currentPath()+"\\DATA_test.txt";
-
     }
     else {
        aa = QDir::currentPath()+"\\DATA.txt";
@@ -877,16 +906,11 @@ void Widget::writeSerialPort( wrCmdMsg & msgCmd, size_t sz ) {
 }
 
 void Widget::stopTest(bool byBtn) {
-    if (timer) {
+    if (timer && timer->isActive()) {
         timer->stop();
-        delete timer;
-        timer = nullptr;
     }
-     if (timerReq->isActive()) {
+    if (timerReq && timerReq->isActive())
         timerReq->stop();
-        delete timerReq;
-        timerReq = nullptr;
-     }
 
      ui->pushButton->setText("Start test");
      if (byBtn) {
