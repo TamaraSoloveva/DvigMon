@@ -1,13 +1,13 @@
 /********************************************************************************
-** Form generated from reading UI file 'widgetGmlnCw.ui'
+** Form generated from reading UI file 'widgetgCArli.ui'
 **
 ** Created by: Qt User Interface Compiler version 5.15.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
 
-#ifndef WIDGETGMLNCW_H
-#define WIDGETGMLNCW_H
+#ifndef WIDGETGCARLI_H
+#define WIDGETGCARLI_H
 
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
@@ -29,13 +29,12 @@ QT_BEGIN_NAMESPACE
 class Ui_Widget
 {
 public:
-    QGridLayout *gridLayout_5;
+    QVBoxLayout *verticalLayout_2;
     QTabWidget *tabWidget;
     QWidget *tab;
-    QGridLayout *gridLayout_2;
+    QHBoxLayout *horizontalLayout;
     QGridLayout *gridLayout_3;
     QTextEdit *textEdit;
-    QSpacerItem *horizontalSpacer;
     QVBoxLayout *verticalLayout;
     QLabel *label;
     QComboBox *comboBox;
@@ -65,6 +64,7 @@ public:
     QPushButton *pushButton_3;
     QSpacerItem *verticalSpacer_7;
     QSpacerItem *verticalSpacer;
+    QSpacerItem *horizontalSpacer;
     QWidget *tab_4;
     QWidget *tab_5;
     QWidget *tab_3;
@@ -83,22 +83,23 @@ public:
     QSpacerItem *horizontalSpacer_3;
     QRadioButton *radioButton;
     QRadioButton *radioButton_2;
+    QLabel *label_8;
 
     void setupUi(QWidget *Widget)
     {
         if (Widget->objectName().isEmpty())
             Widget->setObjectName(QString::fromUtf8("Widget"));
-        Widget->resize(593, 578);
-        Widget->setMinimumSize(QSize(561, 578));
-        gridLayout_5 = new QGridLayout(Widget);
-        gridLayout_5->setObjectName(QString::fromUtf8("gridLayout_5"));
+        Widget->resize(605, 593);
+        Widget->setMinimumSize(QSize(561, 593));
+        verticalLayout_2 = new QVBoxLayout(Widget);
+        verticalLayout_2->setObjectName(QString::fromUtf8("verticalLayout_2"));
         tabWidget = new QTabWidget(Widget);
         tabWidget->setObjectName(QString::fromUtf8("tabWidget"));
-        tabWidget->setMinimumSize(QSize(561, 555));
+        tabWidget->setMinimumSize(QSize(587, 544));
         tab = new QWidget();
         tab->setObjectName(QString::fromUtf8("tab"));
-        gridLayout_2 = new QGridLayout(tab);
-        gridLayout_2->setObjectName(QString::fromUtf8("gridLayout_2"));
+        horizontalLayout = new QHBoxLayout(tab);
+        horizontalLayout->setObjectName(QString::fromUtf8("horizontalLayout"));
         gridLayout_3 = new QGridLayout();
         gridLayout_3->setObjectName(QString::fromUtf8("gridLayout_3"));
         textEdit = new QTextEdit(tab);
@@ -106,10 +107,6 @@ public:
         textEdit->setReadOnly(true);
 
         gridLayout_3->addWidget(textEdit, 0, 0, 1, 1);
-
-        horizontalSpacer = new QSpacerItem(13, 20, QSizePolicy::Maximum, QSizePolicy::Minimum);
-
-        gridLayout_3->addItem(horizontalSpacer, 0, 1, 1, 1);
 
         verticalLayout = new QVBoxLayout();
         verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
@@ -287,10 +284,14 @@ public:
         verticalLayout->addItem(verticalSpacer);
 
 
-        gridLayout_3->addLayout(verticalLayout, 0, 2, 1, 1);
+        gridLayout_3->addLayout(verticalLayout, 0, 2, 2, 1);
+
+        horizontalSpacer = new QSpacerItem(13, 20, QSizePolicy::Maximum, QSizePolicy::Minimum);
+
+        gridLayout_3->addItem(horizontalSpacer, 1, 1, 1, 1);
 
 
-        gridLayout_2->addLayout(gridLayout_3, 0, 0, 1, 1);
+        horizontalLayout->addLayout(gridLayout_3);
 
         tabWidget->addTab(tab, QString());
         tab_4 = new QWidget();
@@ -372,7 +373,15 @@ public:
 
         tabWidget->addTab(tab_6, QString());
 
-        gridLayout_5->addWidget(tabWidget, 0, 0, 1, 1);
+        verticalLayout_2->addWidget(tabWidget);
+
+        label_8 = new QLabel(Widget);
+        label_8->setObjectName(QString::fromUtf8("label_8"));
+        QFont font;
+        font.setPointSize(11);
+        label_8->setFont(font);
+
+        verticalLayout_2->addWidget(label_8);
 
 
         retranslateUi(Widget);
@@ -410,6 +419,7 @@ public:
         radioButton->setText(QCoreApplication::translate("Widget", "Start", nullptr));
         radioButton_2->setText(QCoreApplication::translate("Widget", "Stop", nullptr));
         tabWidget->setTabText(tabWidget->indexOf(tab_6), QCoreApplication::translate("Widget", "Equalize ", nullptr));
+        label_8->setText(QCoreApplication::translate("Widget", "TextLabel", nullptr));
     } // retranslateUi
 
 };
@@ -420,4 +430,4 @@ namespace Ui {
 
 QT_END_NAMESPACE
 
-#endif // WIDGETGMLNCW_H
+#endif // WIDGETGCARLI_H

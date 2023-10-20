@@ -23,6 +23,8 @@ Widget::Widget(QWidget *parent)
     seriesMedU = nullptr;
     timerReq = nullptr;
 
+    askMode = false;
+
     flMenu = new QMenu;
     actClean = new QAction("Clean screen", ui->textEdit);
     ui->textEdit->addAction(actClean);
@@ -61,6 +63,14 @@ Widget::Widget(QWidget *parent)
     waitTimer = new QTimer();
     waitTimer->setInterval(1000);
     connect(waitTimer, &QTimer::timeout, this, &Widget::waitAnswerFromTMN);
+    //таймер запроса характеристик из модуля
+    askTimer = new QTimer;
+    askTimer->setInterval(1000);
+    ui->label_8->setText("--");
+    connect(askTimer, &QTimer::timeout, this, &Widget::askInfo);
+
+
+
 
     QMenu *pmnu   = new QMenu("&Menu");
     pmnu->addAction("&Save charts", this,  SLOT(slot_saveCharts()), Qt::CTRL + Qt::Key_S);
@@ -78,14 +88,18 @@ Widget::Widget(QWidget *parent)
     act3->setCheckable(true);
     act3->setChecked(true);
     pmnu->addAction(act3);
+    act4 = new QAction("&Show parameters");
+    act4->setCheckable(true);
+    act4->setChecked(false);
+    pmnu->addAction(act4);
+    connect(act4, &QAction::toggled, this, &Widget::showParamsOnPanel  );
+    connect(this, &Widget::reWriteLCD, this, &Widget::slot_reWriteLCD );
 
     QMenuBar *mnuBar;
     mnuBar = new QMenuBar();
     ui->gridLayout_3->addWidget(mnuBar);
     mnuBar->addMenu(pmnu);
-
     val=tmp=cntr=numInArr=0;
-
     iDataV.clear();
     shiftVec.clear();
     zeroCycle = true;
@@ -134,6 +148,26 @@ Widget::Widget(QWidget *parent)
     manualAdjMode();
 }
 
+void Widget::askInfo() {
+    //раз в секунду запрос в ТМН
+    msgCmd.wrs.strt = '#';
+    msgCmd.wrs.freq_msb = 0;
+    msgCmd.wrs.freq_lsb = 0;
+    msgCmd.wrs.end = '!';
+    writeSerialPort(msgCmd);
+}
+
+void Widget::showParamsOnPanel() {
+    if (act4->isChecked()) {
+        askMode = true;
+        askTimer->start();
+    }
+    else {
+        askTimer->stop();
+        askMode = false;
+    }
+}
+
 /* Функция для получения рандомного числа
  * в диапазоне от минимального до максимального
  * */
@@ -163,9 +197,42 @@ void Widget::handleMarkerClicked() {
     }
 }
 
+void Widget::slot_reWriteLCD(const quint16 &i, const quint16 &f, const char &mode) {
+    QString modeS;
+    if (mode == 0x5)
+        modeS = "ожидание";
+    else if (mode == 0x8)
+            modeS = "разгон";
+    else if (mode == 0x10)
+            modeS = "торможение";
+    else if (mode == 0x15)
+            modeS = "рабочий режим";
+    else modeS = "ошибка приема";
+    QString res = "ток: " + QString::number((float)i/1000)  + QString(" A   частота: ")+QString::number(f) + QString(" Hz  режим: ")+ modeS;
+    ui->label_8->clear();
+    ui->label_8->setText(res);
+}
+
 
 void Widget::readRawData() {
     QByteArray rdData = m_serial->readAll();
+//    rdData.resize(6);
+//    rdData[0] = '@';
+//    rdData[1] = 0x8B;
+//    rdData[2] = 0xB;
+//    rdData[0] = '@';
+//    rdData[0] = '@';
+//    rdData[0] = '@';
+    if (askMode) {
+        if (rdData.size() >= 6) {
+            //infoBuf.push_back(rdData);
+            quint16 i = static_cast<quint8>(rdData.at(1)) | rdData.at(2) << 8;
+            quint16 f = static_cast<quint8>(rdData.at(3)) | (rdData.at(4) << 8 );
+            unsigned char mode = rdData.at(5);
+            emit reWriteLCD(i, f, mode) ;
+            rdData.remove(0, 6);
+        }
+    }
     if (rdData.size() >= 4) {
         if ((rdData.at(0) == '@') && (rdData.at(1) == 0x41) && (rdData.at(2) == 0x53) && (rdData.at(3) == 0x53) ) {
             rdData.remove(0, 4);
@@ -175,6 +242,11 @@ void Widget::readRawData() {
         else if ((rdData.at(0) == '@') && (rdData.at(1) == 0x0) && (rdData.at(2) == 0x4f) && (rdData.at(3) == 0x4B) ) {
             rdData.remove(0, 4);
             QMessageBox::information(this, "Info", "Packet received", QMessageBox::Ok);
+            waitTimer->stop();
+        }
+        else if ((rdData.at(0) == '@') && (rdData.at(1) == 0x50) && (rdData.at(2) == 0x49) && (rdData.at(3) == 0x47) ) {
+            rdData.remove(0, 4);
+            QMessageBox::warning(this, "Error", "Packet received ERROR", QMessageBox::Ok);
             waitTimer->stop();
         }
     }
@@ -293,30 +365,31 @@ void Widget::writeVecToCom( ) {
         }
         wrCmdMsg msgCmd;
         chSm = 0;
+        unsigned char packNum = 0;
         QVector<QPointF>::const_iterator it;
-        for ( it = ampl.begin(); it < ampl.end(); ++it ) {
+        for ( it = ampl.begin(); it < ampl.end();  ) {
             if (ui->radioButton->isChecked())
                 msgCmd.wrs.strt = '%';
             else
                 msgCmd.wrs.strt = '&';
-            msgCmd.wrs.freq_msb = qRound(it->y());
-            QString sss = QString("%1 - %2\n").arg(msgCmd.wrs.freq_msb).arg(it->y());
-            fl_aTmp.write(sss.toUtf8());
 
-            chSm ^= qRound(it->y());
-            it++;
+            msgCmd.wrs.freq_msb = packNum;
+            QString sss;
+
             msgCmd.wrs.freq_lsb = qRound(it->y());
-            sss = QString("%1 - %2\n").arg(msgCmd.wrs.freq_lsb).arg(it->y());
+            sss = QString("%1 - %2\n").arg(QString::number(packNum)).arg(it->y());
             fl_aTmp.write(sss.toUtf8());
-
             chSm ^= qRound(it->y());
             it++;
+
             msgCmd.wrs.end = qRound(it->y());
-            sss = QString("%1 - %2\n").arg(msgCmd.wrs.end).arg(it->y());
+            sss = QString("%1 - %2\n").arg(QString::number(packNum)).arg(it->y());
             fl_aTmp.write(sss.toUtf8());
-
-
             chSm ^= qRound(it->y());
+
+            packNum++;
+            it++;
+
             writeSerialPort(msgCmd);
         }
         if (ui->radioButton->isChecked())
@@ -775,6 +848,10 @@ Widget::~Widget() {
     if (seriesU) delete seriesU;
     if (seriesU) delete seriesKU;
     if (seriesMedU) delete seriesMedU;
+
+    if (askTimer->isActive())
+        askTimer->stop();
+    delete askTimer;
 
     slot_stopConnection();
 

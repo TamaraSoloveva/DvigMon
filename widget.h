@@ -22,6 +22,8 @@
 #include <QScatterSeries>
 #include <QSplineSeries>
 #include <QSharedPointer>
+#include <QDebug>
+#include <QStatusBar>
 
 
 #include <QRandomGenerator>
@@ -98,15 +100,18 @@ private:
     QTime time;
     bool useFuncFlag;
     bool useTstFlag;
-    QAction *act3;
+    bool askMode;
+    QAction *act3, *act4;
     ChartView_move *chView;
+    QVector <QByteArray> infoBuf;
 
     int sec_num_wait;
+    int tmpCnt;
 
     size_t rdSet_num;
     QTimer *timer, *timerReq;
     size_t secNum, currSec;
-    QTimer *waitTimer;
+    QTimer *waitTimer, *askTimer;
 
     QMutex mutex;
     QFile fl, fl_tmp;
@@ -190,6 +195,8 @@ private slots:
     void slot_saveCharts();
     void slot_sendData();
     void slot_sendCurrLimits();
+    void showParamsOnPanel();
+    void slot_reWriteLCD(const quint16 &i, const quint16 &f, const char &mode );
 
 
     float getChartValue(const QPointF &p1, const QPointF &p2, const float &x);
@@ -197,6 +204,8 @@ private slots:
     void openChart();
     void saveChart();
     void waitAnswerFromTMN();
+    void askInfo();
+
 
 
     //COM port
@@ -213,6 +222,7 @@ public slots:
 signals:
     void signal_outMsgWithData( QString str );
     void signal_resetVec(const QVector<QPointF> &vect);
+    void reWriteLCD(const quint16 &i, const quint16 &f, const char &mode) ;
 
     //COM port
     void signalSaveByteArray(QByteArray tmp);
